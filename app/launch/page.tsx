@@ -6,8 +6,8 @@ export default function LaunchPage() {
   const [symbol, setSymbol] = useState("");
   const [description, setDescription] = useState("");
   const [wallet, setWallet] = useState("");
-  const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
 
   const deploy = async () => {
     setLoading(true);
@@ -16,15 +16,8 @@ export default function LaunchPage() {
       "https://bankrsynth-backend-production.up.railway.app/launch",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name,
-          symbol,
-          description,
-          wallet
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, symbol, description, wallet })
       }
     );
 
@@ -34,56 +27,59 @@ export default function LaunchPage() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-green-400 p-6 font-mono">
+    <main className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center px-4">
 
-      <h1 className="text-5xl text-center mb-10">
-        BANKRSYNTH LAUNCH TERMINAL
-      </h1>
+      {/* PANEL */}
+      <div className="w-full max-w-xl border border-green-400 p-6 bg-black/70 backdrop-blur">
 
-      <div className="max-w-2xl mx-auto border border-green-400 p-6">
+        <h1 className="text-3xl sm:text-4xl text-center mb-6">
+          BANKRSYNTH LAUNCH
+        </h1>
 
-        <p>{">"} Deploy token on Base</p>
+        <p className="mb-4 text-sm opacity-80">
+          {">"} Deploy token on Base
+        </p>
 
         <input
           placeholder="Token Name"
-          className="w-full mt-4 bg-black border border-green-400 p-3"
+          className="w-full mb-3 bg-black border border-green-400 p-3"
           onChange={e => setName(e.target.value)}
         />
 
         <input
           placeholder="Symbol (optional)"
-          className="w-full mt-4 bg-black border border-green-400 p-3"
+          className="w-full mb-3 bg-black border border-green-400 p-3"
           onChange={e => setSymbol(e.target.value)}
         />
 
         <input
           placeholder="Description"
-          className="w-full mt-4 bg-black border border-green-400 p-3"
+          className="w-full mb-3 bg-black border border-green-400 p-3"
           onChange={e => setDescription(e.target.value)}
         />
 
         <input
           placeholder="Creator Wallet (receives fees)"
-          className="w-full mt-4 bg-black border border-green-400 p-3"
+          className="w-full mb-5 bg-black border border-green-400 p-3"
           onChange={e => setWallet(e.target.value)}
         />
 
         <button
           onClick={deploy}
-          className="mt-6 border border-green-400 px-8 py-3 hover:bg-green-400 hover:text-black transition"
+          className="w-full border border-green-400 py-3 hover:bg-green-400 hover:text-black transition"
         >
           {loading ? "DEPLOYING..." : "EXECUTE DEPLOY"}
         </button>
 
         {result?.success && (
-          <div className="mt-8">
+          <div className="mt-6 text-sm">
 
             <p>{">"} DEPLOY SUCCESS</p>
 
             <a
               href={`https://basescan.org/token/${result.tokenAddress}`}
               target="_blank"
-              className="block underline mt-4"
+              className="block underline mt-2"
             >
               View on BaseScan
             </a>
@@ -108,6 +104,7 @@ export default function LaunchPage() {
         )}
 
       </div>
+
     </main>
   );
 }
