@@ -2,16 +2,18 @@
 import { useState } from "react";
 
 export default function LaunchPage() {
-  const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [symbol, setSymbol] = useState("");
   const [description, setDescription] = useState("");
   const [wallet, setWallet] = useState("");
-  const [result, setResult] = useState<any>(null);
+
   const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [history, setHistory] = useState<any[]>([]);
 
   const deploy = async () => {
     setLoading(true);
+    setResult(null);
 
     const res = await fetch(
       "https://bankrsynth-backend-production.up.railway.app/launch",
@@ -28,90 +30,109 @@ export default function LaunchPage() {
     );
 
     const data = await res.json();
+
     setResult(data);
     setLoading(false);
+
+    if (data.success) {
+      setHistory(prev => [data, ...prev]);
+    }
   };
 
   return (
-    <main className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center">
+    <main className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center p-6">
 
-      {/* OPEN BUTTON */}
-      {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          className="border border-green-400 px-10 py-4 text-xl hover:bg-green-400 hover:text-black transition shadow-[0_0_25px_#00ff9c]"
-        >
-          LAUNCH TOKEN
-        </button>
-      )}
+      {/* TERMINAL WINDOW */}
+      <div className="w-full max-w-3xl border border-green-400 bg-black shadow-[0_0_60px_#00ff9c55]">
 
-      {/* MODAL */}
-      {open && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+        {/* HEADER */}
+        <div className="flex items-center gap-2 border-b border-green-400 p-2">
+          <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+          <div className="w-3 h-3 border border-green-400 rounded-full"></div>
+          <div className="w-3 h-3 border border-green-400 rounded-full"></div>
 
-          <div className="
-            w-[95%] max-w-xl
-            border border-green-400
-            bg-black
-            p-8
-            shadow-[0_0_40px_#00ff9c]
-            relative
-          ">
+          <span className="ml-4 text-sm opacity-70">
+            bankrsynth://launch
+          </span>
+        </div>
 
-            {/* CLOSE */}
-            <button
-              onClick={() => setOpen(false)}
-              className="absolute right-4 top-2 text-2xl hover:text-white"
-            >
-              ×
-            </button>
+        {/* TITLE */}
+        <div className="text-center py-6">
+          <h1 className="text-2xl">
+            BANKRSYNTH LAUNCH TERMINAL
+          </h1>
+          <p className="opacity-70 mt-2">
+            &gt; bankrsynth launch --chain base
+          </p>
+        </div>
 
-            <h2 className="text-3xl text-center mb-6">
-              BANKRSYNTH DEPLOY
-            </h2>
+        {/* FORM */}
+        <div className="p-6 space-y-4">
 
-            <p className="mb-4">{">"} bankrsynth launch --chain base</p>
+          <input
+            placeholder="Token Name"
+            className="terminal-input"
+            onChange={e => setName(e.target.value)}
+          />
 
-            <input
-              placeholder="Token Name"
-              className="terminal-input"
-              onChange={e => setName(e.target.value)}
-            />
+          <input
+            placeholder="Symbol (optional)"
+            className="terminal-input"
+            onChange={e => setSymbol(e.target.value)}
+          />
 
-            <input
-              placeholder="Symbol (optional)"
-              className="terminal-input"
-              onChange={e => setSymbol(e.target.value)}
-            />
+          <input
+            placeholder="Description"
+            className="terminal-input"
+            onChange={e => setDescription(e.target.value)}
+          />
 
-            <input
-              placeholder="Description"
-              className="terminal-input"
-              onChange={e => setDescription(e.target.value)}
-            />
+          <input
+            placeholder="Creator Wallet (receives fees)"
+            className="terminal-input"
+            onChange={e => setWallet(e.target.value)}
+          />
 
-            <input
-              placeholder="Creator Wallet (receives fees)"
-              className="terminal-input"
-              onChange={e => setWallet(e.target.value)}
-            />
+          <button
+            onClick={deploy}
+            className="terminal-btn"
+          >
+            {loading ? "DEPLOYING..." : "EXECUTE DEPLOY"}
+          </button>
+        </div>
 
-            <button
-              onClick={deploy}
-              className="terminal-btn mt-6"
-            >
-              {loading ? "DEPLOYING..." : "EXECUTE DEPLOY"}
-            </button>
+        {/* OUTPUT */}
+        <div className="p-6 border-t border-green-400 min-h-[220px]">
 
-            {result?.success && (
-              <div className="mt-6 text-sm">
+          {loading && (
+            <div className="space-y-1 opacity-80">
+              <p>&gt; connecting to bankr infra...</p>
+              <p>&gt; generating deployment wallet...</p>
+              <p>&gt; signing transaction...</p>
+              <p>&gt; broadcasting...</p>
+            </div>
+          )}
 
-                <p>{">"} DEPLOY SUCCESS</p>
+          {result?.success && (
+            <div className="space-y-2">
+
+              <p>&gt; DEPLOYMENT SUCCESS</p>
+
+              <p>
+                TOKEN ADDRESS: {result.tokenAddress}
+              </p>
+
+              <p>
+                TX HASH: {result.txHash}
+              </p>
+
+              {/* LINKS */}
+              <div className="mt-4 space-y-1">
 
                 <a
                   href={`https://basescan.org/token/${result.tokenAddress}`}
                   target="_blank"
-                  className="block underline mt-2"
+                  className="block underline"
                 >
                   View on BaseScan
                 </a>
@@ -119,7 +140,7 @@ export default function LaunchPage() {
                 <a
                   href={`https://www.geckoterminal.com/base/pools/${result.poolId}`}
                   target="_blank"
-                  className="block underline mt-1"
+                  className="block underline"
                 >
                   View on GeckoTerminal
                 </a>
@@ -127,17 +148,56 @@ export default function LaunchPage() {
                 <a
                   href={`https://swap.bankr.bot/?outputToken=${result.tokenAddress}`}
                   target="_blank"
-                  className="block underline mt-1"
+                  className="block underline"
                 >
                   Trade on Bankr Swap
                 </a>
 
               </div>
-            )}
+
+              <p className="mt-4 opacity-70">
+                &gt; END OF TRANSMISSION
+              </p>
+
+            </div>
+          )}
+
+        </div>
+
+        {/* HISTORY */}
+        {history.length > 0 && (
+          <div className="border-t border-green-400 p-6">
+
+            <p className="mb-4">
+              &gt; DEPLOY HISTORY
+            </p>
+
+            <div className="space-y-2 text-sm">
+
+              {history.map((h, i) => (
+                <div key={i} className="border border-green-400 p-3">
+
+                  <p>
+                    {h.tokenAddress}
+                  </p>
+
+                  <a
+                    href={`https://basescan.org/token/${h.tokenAddress}`}
+                    target="_blank"
+                    className="underline"
+                  >
+                    View
+                  </a>
+
+                </div>
+              ))}
+
+            </div>
 
           </div>
-        </div>
-      )}
+        )}
+
+      </div>
 
     </main>
   );
