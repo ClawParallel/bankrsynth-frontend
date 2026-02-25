@@ -7,7 +7,7 @@ export default function LaunchPage() {
   const [description, setDescription] = useState("");
 
   const deploy = async () => {
-    await fetch("https://YOUR_BACKEND_URL/launch", {
+    await fetch("https://bankrsynth-backend-production.up.railway.app/launch", {
       method: "POST",
       headers: {"Content-Type":"application/json"},
       body: JSON.stringify({ name, symbol, description })

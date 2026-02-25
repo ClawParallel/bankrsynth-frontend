@@ -8,7 +8,7 @@ export default function IntelPage() {
   const [data, setData] = useState<any>(null);
 
   const analyze = async () => {
-    const res = await fetch("https://YOUR_BACKEND_URL/intel", {
+    const res = await fetch("https://bankrsynth-backend-production.up.railway.app/intel", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ address })
