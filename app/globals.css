@@ -2,8 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== MATRIX BASE ===== */
+
 body {
   background: #000;
-  color: #00ff9f;
+  color: #00ff9c;
   font-family: "Courier New", monospace;
+  overflow-x: hidden;
+}
+
+/* ===== TERMINAL INPUT ===== */
+
+.terminal-input {
+  width: 100%;
+  background: #000;
+  border: 1px solid #00ff9c;
+  padding: 12px;
+  margin-top: 12px;
+  color: #00ff9c;
+  outline: none;
+
+  box-shadow: 0 0 8px #00ff9c33 inset;
+  transition: 0.2s;
+}
+
+.terminal-input:focus {
+  box-shadow:
+    0 0 12px #00ff9c,
+    inset 0 0 8px #00ff9c;
+}
+
+/* Placeholder style */
+.terminal-input::placeholder {
+  color: #00ff9c66;
+}
+
+/* ===== TERMINAL BUTTON ===== */
+
+.terminal-btn {
+  width: 100%;
+  border: 1px solid #00ff9c;
+  padding: 14px;
+  margin-top: 14px;
+  transition: 0.2s;
+
+  box-shadow: 0 0 15px #00ff9c55;
+}
+
+.terminal-btn:hover {
+  background: #00ff9c;
+  color: black;
+  box-shadow: 0 0 25px #00ff9c;
+}
+
+/* ===== TERMINAL PANEL ===== */
+
+.terminal-panel {
+  border: 1px solid #00ff9c;
+  padding: 20px;
+  background: #000;
+  box-shadow:
+    0 0 40px #00ff9c33,
+    inset 0 0 25px #00ff9c22;
+}
+
+/* ===== MATRIX GLOW TEXT ===== */
+
+.glow-text {
+  text-shadow: 0 0 8px #00ff9c, 0 0 18px #00ff9c;
+}
+
+/* ===== SCANLINE EFFECT ===== */
+
+.scanlines::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 156, 0.05) 3px
+  );
+  pointer-events: none;
 }
