@@ -6,50 +6,63 @@ export default function LaunchPage() {
   const [symbol, setSymbol] = useState("");
   const [description, setDescription] = useState("");
 
-  const deploy = async () => {
-    await fetch("https://bankrsynth-backend-production.up.railway.app/launch", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ name, symbol, description })
-    });
+  const launch = async () => {
+    if (!name) {
+      alert("Token name required");
+      return;
+    }
 
-    alert("Token launching 🚀");
+    const res = await fetch(
+      "https://bankrsynth-backend-production.up.railway.app/launch",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          symbol,
+          description
+        })
+      }
+    );
+
+    const data = await res.json();
+    console.log(data);
+
+    alert("Launch response received");
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-6">
+    <main className="min-h-screen p-6 text-center">
+      <h1 className="text-5xl mb-8">LAUNCH TOKEN</h1>
 
-      <h1 className="text-5xl font-bold mb-8">Launch Token</h1>
-
-      <div className="w-full max-w-lg space-y-4">
+      <div className="max-w-xl mx-auto border p-6">
 
         <input
           placeholder="Token Name"
-          className="w-full p-4 bg-black border"
-          onChange={e=>setName(e.target.value)}
+          className="w-full border p-3 mb-4"
+          onChange={e => setName(e.target.value)}
         />
 
         <input
           placeholder="Symbol"
-          className="w-full p-4 bg-black border"
-          onChange={e=>setSymbol(e.target.value)}
+          className="w-full border p-3 mb-4"
+          onChange={e => setSymbol(e.target.value)}
         />
 
         <textarea
           placeholder="Description"
-          className="w-full p-4 bg-black border"
-          onChange={e=>setDescription(e.target.value)}
+          className="w-full border p-3 mb-4"
+          onChange={e => setDescription(e.target.value)}
         />
 
         <button
-          onClick={deploy}
-          className="w-full border py-4 hover:bg-green-400 hover:text-black"
+          onClick={launch}
+          className="border px-6 py-3"
         >
-          LAUNCH
+          EXECUTE LAUNCH
         </button>
 
       </div>
-
     </main>
   );
 }
