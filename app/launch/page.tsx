@@ -5,64 +5,94 @@ export default function LaunchPage() {
   const [name, setName] = useState("");
   const [symbol, setSymbol] = useState("");
   const [description, setDescription] = useState("");
+  const [result, setResult] = useState<any>(null);
 
   const launch = async () => {
-    if (!name) {
-      alert("Token name required");
-      return;
-    }
-
     const res = await fetch(
       "https://bankrsynth-backend-production.up.railway.app/launch",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          symbol,
-          description
-        })
+        body: JSON.stringify({ name, symbol, description })
       }
     );
 
     const data = await res.json();
     console.log(data);
 
-    alert("Launch response received");
+    setResult(data);
   };
 
   return (
-    <main className="min-h-screen p-6 text-center">
-      <h1 className="text-5xl mb-8">LAUNCH TOKEN</h1>
+    <main className="min-h-screen p-6 text-green-400 font-mono">
 
-      <div className="max-w-xl mx-auto border p-6">
+      <h1 className="text-5xl text-center mb-8">
+        BANKRSYNTH LAUNCH TERMINAL
+      </h1>
+
+      <div className="max-w-xl mx-auto border p-6 bg-black">
 
         <input
           placeholder="Token Name"
-          className="w-full border p-3 mb-4"
+          className="w-full border p-3 mb-4 bg-black"
           onChange={e => setName(e.target.value)}
         />
 
         <input
           placeholder="Symbol"
-          className="w-full border p-3 mb-4"
+          className="w-full border p-3 mb-4 bg-black"
           onChange={e => setSymbol(e.target.value)}
         />
 
         <textarea
           placeholder="Description"
-          className="w-full border p-3 mb-4"
+          className="w-full border p-3 mb-4 bg-black"
           onChange={e => setDescription(e.target.value)}
         />
 
         <button
           onClick={launch}
-          className="border px-6 py-3"
+          className="border px-6 py-3 hover:bg-green-900"
         >
           EXECUTE LAUNCH
         </button>
 
       </div>
+
+      {result && (
+        <div className="max-w-3xl mx-auto mt-10 border p-6 bg-black">
+
+          <p> DEPLOYMENT SUCCESS</p>
+          <p> TOKEN ADDRESS: {result.tokenAddress}</p>
+          <p> TX HASH: {result.txHash}</p>
+
+          <div className="mt-6 space-y-2">
+
+            <a
+              href={`https://basescan.org/address/${result.tokenAddress}`}
+              target="_blank"
+              className="block underline"
+            >
+              🔗 View on Basescan
+            </a>
+
+            <a
+              href={`https://www.geckoterminal.com/base/pools/${result.poolId}`}
+              target="_blank"
+              className="block underline"
+            >
+              📈 View on GeckoTerminal
+            </a>
+
+          </div>
+
+          <p className="mt-6 text-green-600">
+             END OF TRANSMISSION
+          </p>
+
+        </div>
+      )}
+
     </main>
   );
 }
