@@ -5,115 +5,109 @@ export default function LaunchPage() {
   const [name, setName] = useState("");
   const [symbol, setSymbol] = useState("");
   const [description, setDescription] = useState("");
-  const [recipient, setRecipient] = useState("");
+  const [wallet, setWallet] = useState("");
   const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  const launch = async () => {
+  const deploy = async () => {
+    setLoading(true);
+
     const res = await fetch(
-      "https://bankrsynth-backend-production.up.railway.app/launch",
+      "https://bankrsynth-frontend.vercel.app/launch",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           name,
           symbol,
           description,
-          recipient
+          wallet
         })
       }
     );
 
     const data = await res.json();
     setResult(data);
+    setLoading(false);
   };
 
   return (
-    <main className="min-h-screen p-6 text-green-400 font-mono bg-black">
+    <main className="min-h-screen bg-black text-green-400 p-6 font-mono">
 
-      <h1 className="text-5xl text-center mb-8">
-        BANKRSYNTH TERMINAL
+      <h1 className="text-5xl text-center mb-10">
+        BANKRSYNTH LAUNCH TERMINAL
       </h1>
 
-      <div className="max-w-xl mx-auto border p-6">
+      <div className="max-w-2xl mx-auto border border-green-400 p-6">
+
+        <p>{">"} Deploy token on Base</p>
 
         <input
           placeholder="Token Name"
-          className="w-full border p-3 mb-4 bg-black"
+          className="w-full mt-4 bg-black border border-green-400 p-3"
           onChange={e => setName(e.target.value)}
         />
 
         <input
-          placeholder="Symbol"
-          className="w-full border p-3 mb-4 bg-black"
+          placeholder="Symbol (optional)"
+          className="w-full mt-4 bg-black border border-green-400 p-3"
           onChange={e => setSymbol(e.target.value)}
         />
 
-        <textarea
+        <input
           placeholder="Description"
-          className="w-full border p-3 mb-4 bg-black"
+          className="w-full mt-4 bg-black border border-green-400 p-3"
           onChange={e => setDescription(e.target.value)}
         />
 
         <input
-          placeholder="Creator Wallet or @X Username"
-          className="w-full border p-3 mb-4 bg-black"
-          onChange={e => setRecipient(e.target.value)}
+          placeholder="Creator Wallet (receives fees)"
+          className="w-full mt-4 bg-black border border-green-400 p-3"
+          onChange={e => setWallet(e.target.value)}
         />
 
         <button
-          onClick={launch}
-          className="border px-6 py-3 hover:bg-green-900"
+          onClick={deploy}
+          className="mt-6 border border-green-400 px-8 py-3 hover:bg-green-400 hover:text-black transition"
         >
-          EXECUTE DEPLOY
+          {loading ? "DEPLOYING..." : "EXECUTE DEPLOY"}
         </button>
 
-      </div>
+        {result?.success && (
+          <div className="mt-8">
 
-      {result && (
-        <div className="max-w-3xl mx-auto mt-10 border p-6">
+            <p>{">"} DEPLOY SUCCESS</p>
 
-          <p> DEPLOYMENT SUCCESS</p>
-          <p> TOKEN ADDRESS: {result.tokenAddress}</p>
-          <p> TX HASH: {result.txHash}</p>
-
-          <div className="mt-6 space-y-3">
-
-            {/* Basescan */}
             <a
-              href={`https://basescan.org/address/${result.tokenAddress}`}
+              href={`https://basescan.org/token/${result.tokenAddress}`}
               target="_blank"
-              className="block underline"
+              className="block underline mt-4"
             >
-              🔗 View on Basescan
+              View on BaseScan
             </a>
 
-            {/* GeckoTerminal */}
             <a
               href={`https://www.geckoterminal.com/base/pools/${result.poolId}`}
               target="_blank"
-              className="block underline"
+              className="block underline mt-2"
             >
-              📈 View on GeckoTerminal
+              View on GeckoTerminal
             </a>
 
-            {/* Bankr Swap */}
             <a
-              href={`https://swap.bankr.bot/?inputToken=ETH&outputToken=${result.tokenAddress}`}
+              href={`https://swap.bankr.bot/?outputToken=${result.tokenAddress}`}
               target="_blank"
-              className="block underline"
+              className="block underline mt-2"
             >
-              💱 Trade on Bankr Swap
+              Trade on Bankr Swap
             </a>
 
           </div>
+        )}
 
-          <p className="mt-6 text-green-600">
-             END OF TRANSMISSION
-          </p>
-
-        </div>
-      )}
-
+      </div>
     </main>
   );
 }
