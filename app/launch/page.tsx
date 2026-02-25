@@ -13,7 +13,7 @@ export default function LaunchPage() {
     setLoading(true);
 
     const res = await fetch(
-      "https://bankrsynth-frontend.vercel.app/launch",
+      "https://bankrsynth-backend-production.up.railway.app/launch",
       {
         method: "POST",
         headers: {
