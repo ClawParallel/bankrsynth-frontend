@@ -40,152 +40,115 @@ export default function LaunchPage() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-green-400 font-mono p-6">
+    <main className="min-h-screen bg-black text-green-400 font-mono flex justify-center p-4 overflow-x-hidden">
 
-      {/* TITLE */}
-      <div className="text-center mb-10">
-        <h1 className="text-4xl">BANKRSYNTH LAUNCH TERMINAL</h1>
-        <p className="opacity-70 mt-2">
-          Deploy tokens on Base via Partner API
-        </p>
-      </div>
+      <div className="w-full max-w-2xl">
 
-      {/* DEPLOY WINDOW */}
-      <div className="max-w-3xl mx-auto border border-green-400 p-6 shadow-[0_0_40px_#00ff9c55]">
+        {/* TERMINAL WINDOW */}
+        <div className="border border-green-400 bg-black shadow-[0_0_30px_#00ff9c55] overflow-hidden">
 
-        <p>&gt; bankrsynth launch --chain base</p>
+          {/* HEADER */}
+          <div className="flex items-center gap-2 border-b border-green-400 p-2">
+            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+            <div className="w-3 h-3 border border-green-400 rounded-full"></div>
+            <div className="w-3 h-3 border border-green-400 rounded-full"></div>
 
-        {/* REQUIRED */}
-        <input
-          placeholder="Token Name (required)"
-          className="terminal-input"
-          onChange={e => setName(e.target.value)}
-        />
+            <span className="ml-4 text-xs opacity-70">
+              bankrsynth://launch
+            </span>
+          </div>
 
-        <input
-          placeholder="Creator Wallet (required)"
-          className="terminal-input"
-          onChange={e => setWallet(e.target.value)}
-        />
+          {/* TITLE */}
+          <div className="text-center py-6">
+            <h1 className="text-2xl">
+              BANKRSYNTH LAUNCH TERMINAL
+            </h1>
+            <p className="opacity-70 mt-2 text-sm">
+              Deploy tokens on Base via Partner API
+            </p>
+          </div>
 
-        {/* OPTIONAL */}
-        <input
-          placeholder="Symbol (optional)"
-          className="terminal-input"
-          onChange={e => setSymbol(e.target.value)}
-        />
+          {/* FORM */}
+          <div className="p-6 space-y-3">
 
-        <input
-          placeholder="Description (optional)"
-          className="terminal-input"
-          onChange={e => setDescription(e.target.value)}
-        />
+            <input placeholder="Token Name (required)" className="terminal-input" onChange={e => setName(e.target.value)} />
+            <input placeholder="Creator Wallet (required)" className="terminal-input" onChange={e => setWallet(e.target.value)} />
 
-        <input
-          placeholder="Token Image URL (optional)"
-          className="terminal-input"
-          onChange={e => setImage(e.target.value)}
-        />
+            <input placeholder="Symbol (optional)" className="terminal-input" onChange={e => setSymbol(e.target.value)} />
+            <input placeholder="Description (optional)" className="terminal-input" onChange={e => setDescription(e.target.value)} />
+            <input placeholder="Token Image URL (optional)" className="terminal-input" onChange={e => setImage(e.target.value)} />
+            <input placeholder="Tweet URL (optional)" className="terminal-input" onChange={e => setTweet(e.target.value)} />
+            <input placeholder="Website URL (optional)" className="terminal-input" onChange={e => setWebsite(e.target.value)} />
 
-        <input
-          placeholder="Tweet URL (optional)"
-          className="terminal-input"
-          onChange={e => setTweet(e.target.value)}
-        />
+            <button onClick={deploy} className="terminal-btn mt-4">
+              {loading ? "DEPLOYING..." : "EXECUTE DEPLOY"}
+            </button>
+          </div>
 
-        <input
-          placeholder="Website URL (optional)"
-          className="terminal-input"
-          onChange={e => setWebsite(e.target.value)}
-        />
+          {/* OUTPUT */}
+          <div className="border-t border-green-400 p-6 min-h-[180px]">
 
-        <button onClick={deploy} className="terminal-btn mt-6">
-          {loading ? "DEPLOYING..." : "EXECUTE DEPLOY"}
-        </button>
+            {loading && (
+              <div className="space-y-1 opacity-80 text-sm">
+                <p>&gt; connecting to bankr infra...</p>
+                <p>&gt; generating deployment wallet...</p>
+                <p>&gt; broadcasting transaction...</p>
+              </div>
+            )}
 
-        {/* OUTPUT */}
-        <div className="mt-6 min-h-[180px]">
-          {loading && (
-            <div>
-              <p>&gt; connecting to bankr infra...</p>
-              <p>&gt; generating deployment wallet...</p>
-              <p>&gt; broadcasting transaction...</p>
-            </div>
-          )}
+            {result?.success && (
+              <div className="space-y-2 text-sm">
 
-          {result?.success && (
-            <div className="space-y-2">
-              <p>&gt; DEPLOY SUCCESS</p>
+                <p>&gt; DEPLOY SUCCESS</p>
 
-              <a
-                href={`https://basescan.org/token/${result.tokenAddress}`}
-                target="_blank"
-                className="underline"
-              >
-                View on BaseScan
-              </a>
+                <a href={`https://basescan.org/token/${result.tokenAddress}`} target="_blank" className="underline block">
+                  View on BaseScan
+                </a>
 
-              <a
-                href={`https://www.geckoterminal.com/base/pools/${result.poolId}`}
-                target="_blank"
-                className="underline"
-              >
-                View on GeckoTerminal
-              </a>
+                <a href={`https://www.geckoterminal.com/base/pools/${result.poolId}`} target="_blank" className="underline block">
+                  View on GeckoTerminal
+                </a>
 
-              <a
-                href={`https://swap.bankr.bot/?outputToken=${result.tokenAddress}`}
-                target="_blank"
-                className="underline"
-              >
-                Trade on Bankr Swap
-              </a>
-            </div>
-          )}
-        </div>
-      </div>
+                <a href={`https://swap.bankr.bot/?outputToken=${result.tokenAddress}`} target="_blank" className="underline block">
+                  Trade on Bankr Swap
+                </a>
 
-      {/* USER GUIDE */}
-      <div className="max-w-3xl mx-auto border border-green-400 p-6 mt-10">
+                <p className="opacity-70 mt-3">
+                  &gt; END OF TRANSMISSION
+                </p>
 
-        <h2 className="text-2xl mb-4">
-          HOW TO DEPLOY A TOKEN
-        </h2>
+              </div>
+            )}
 
-        <p className="mb-4">
-          Only token name and creator wallet are required.
-          All other fields are optional.
-        </p>
-
-        <div className="space-y-2 text-sm">
-
-          <p>&gt; Token Name — Name of your token</p>
-          <p>&gt; Creator Wallet — Receives trading fees</p>
-          <p>&gt; Symbol — Auto-generated if empty</p>
-          <p>&gt; Description — Stored on-chain</p>
-          <p>&gt; Image — Public image URL</p>
-          <p>&gt; Tweet — Optional announcement link</p>
-          <p>&gt; Website — Optional project site</p>
-
+          </div>
         </div>
 
-        <div className="mt-6 text-sm">
+        {/* GUIDE */}
+        <div className="border border-green-400 p-6 mt-8 text-sm">
+          <h2 className="text-xl mb-4">HOW TO DEPLOY A TOKEN</h2>
 
-          <p className="mb-2">&gt; Upload token image:</p>
+          <p className="mb-4">
+            Only token name and creator wallet are required.
+          </p>
 
-          <a
-            href="https://imgbb.com/"
-            target="_blank"
-            className="underline"
-          >
-            https://imgbb.com/
-          </a>
+          <div className="space-y-1 opacity-80">
+            <p>&gt; Token Name — Name of your token</p>
+            <p>&gt; Creator Wallet — Receives trading fees</p>
+            <p>&gt; Symbol auto-generated if empty</p>
+            <p>&gt; Image must be public URL</p>
+          </div>
 
+          <div className="mt-4">
+            <p>&gt; Upload image:</p>
+            <a href="https://imgbb.com/" target="_blank" className="underline">
+              https://imgbb.com/
+            </a>
+          </div>
+
+          <p className="mt-4 opacity-70">
+            Deployment is permanent on Base chain.
+          </p>
         </div>
-
-        <p className="mt-6 text-sm opacity-70">
-          Deployment is permanent. Tokens launch on Base chain.
-        </p>
 
       </div>
 
