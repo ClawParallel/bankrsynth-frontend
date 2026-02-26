@@ -6,10 +6,12 @@ export default function LaunchPage() {
   const [symbol, setSymbol] = useState("");
   const [description, setDescription] = useState("");
   const [wallet, setWallet] = useState("");
+  const [image, setImage] = useState("");
+  const [tweet, setTweet] = useState("");
+  const [website, setWebsite] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const [history, setHistory] = useState<any[]>([]);
 
   const deploy = async () => {
     setLoading(true);
@@ -24,182 +26,166 @@ export default function LaunchPage() {
           name,
           symbol,
           description,
-          wallet
+          wallet,
+          image,
+          tweet,
+          website
         })
       }
     );
 
     const data = await res.json();
-
     setResult(data);
     setLoading(false);
-
-    if (data.success) {
-      setHistory(prev => [data, ...prev]);
-    }
   };
 
   return (
-    <main className="min-h-screen bg-black text-green-400 font-mono flex items-center justify-center p-4 overflow-x-hidden">
+    <main className="min-h-screen bg-black text-green-400 font-mono p-6">
 
-      {/* OUTER CONTAINER (FIX OVERFLOW) */}
-      <div className="w-full max-w-3xl">
+      {/* TITLE */}
+      <div className="text-center mb-10">
+        <h1 className="text-4xl">BANKRSYNTH LAUNCH TERMINAL</h1>
+        <p className="opacity-70 mt-2">
+          Deploy tokens on Base via Partner API
+        </p>
+      </div>
 
-        {/* TERMINAL WINDOW */}
-        <div className="border border-green-400 bg-black shadow-[0_0_30px_#00ff9c33] overflow-hidden">
+      {/* DEPLOY WINDOW */}
+      <div className="max-w-3xl mx-auto border border-green-400 p-6 shadow-[0_0_40px_#00ff9c55]">
 
-          {/* HEADER */}
-          <div className="flex items-center gap-2 border-b border-green-400 p-2">
-            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-            <div className="w-3 h-3 border border-green-400 rounded-full"></div>
-            <div className="w-3 h-3 border border-green-400 rounded-full"></div>
+        <p>&gt; bankrsynth launch --chain base</p>
 
-            <span className="ml-4 text-sm opacity-70">
-              bankrsynth://launch
-            </span>
-          </div>
+        {/* REQUIRED */}
+        <input
+          placeholder="Token Name (required)"
+          className="terminal-input"
+          onChange={e => setName(e.target.value)}
+        />
 
-          {/* TITLE */}
-          <div className="text-center py-6 px-4">
-            <h1 className="text-2xl md:text-3xl">
-              BANKRSYNTH LAUNCH TERMINAL
-            </h1>
+        <input
+          placeholder="Creator Wallet (required)"
+          className="terminal-input"
+          onChange={e => setWallet(e.target.value)}
+        />
 
-            <p className="opacity-70 mt-2 text-sm">
-              &gt; bankrsynth launch --chain base
-            </p>
-          </div>
+        {/* OPTIONAL */}
+        <input
+          placeholder="Symbol (optional)"
+          className="terminal-input"
+          onChange={e => setSymbol(e.target.value)}
+        />
 
-          {/* FORM */}
-          <div className="p-6 space-y-4">
+        <input
+          placeholder="Description (optional)"
+          className="terminal-input"
+          onChange={e => setDescription(e.target.value)}
+        />
 
-            <input
-              placeholder="Token Name"
-              className="terminal-input"
-              onChange={e => setName(e.target.value)}
-            />
+        <input
+          placeholder="Token Image URL (optional)"
+          className="terminal-input"
+          onChange={e => setImage(e.target.value)}
+        />
 
-            <input
-              placeholder="Symbol (optional)"
-              className="terminal-input"
-              onChange={e => setSymbol(e.target.value)}
-            />
+        <input
+          placeholder="Tweet URL (optional)"
+          className="terminal-input"
+          onChange={e => setTweet(e.target.value)}
+        />
 
-            <input
-              placeholder="Description"
-              className="terminal-input"
-              onChange={e => setDescription(e.target.value)}
-            />
+        <input
+          placeholder="Website URL (optional)"
+          className="terminal-input"
+          onChange={e => setWebsite(e.target.value)}
+        />
 
-            <input
-              placeholder="Creator Wallet (receives fees)"
-              className="terminal-input"
-              onChange={e => setWallet(e.target.value)}
-            />
+        <button onClick={deploy} className="terminal-btn mt-6">
+          {loading ? "DEPLOYING..." : "EXECUTE DEPLOY"}
+        </button>
 
-            <button
-              onClick={deploy}
-              className="terminal-btn"
-            >
-              {loading ? "DEPLOYING..." : "EXECUTE DEPLOY"}
-            </button>
-          </div>
-
-          {/* OUTPUT */}
-          <div className="p-6 border-t border-green-400 min-h-[220px]">
-
-            {loading && (
-              <div className="space-y-1 opacity-80 text-sm">
-                <p>&gt; connecting to bankr infra...</p>
-                <p>&gt; generating deployment wallet...</p>
-                <p>&gt; signing transaction...</p>
-                <p>&gt; broadcasting...</p>
-              </div>
-            )}
-
-            {result?.success && (
-              <div className="space-y-2 text-sm break-words">
-
-                <p>&gt; DEPLOYMENT SUCCESS</p>
-
-                <p>
-                  TOKEN ADDRESS: {result.tokenAddress}
-                </p>
-
-                <p>
-                  TX HASH: {result.txHash}
-                </p>
-
-                {/* LINKS */}
-                <div className="mt-4 space-y-1">
-
-                  <a
-                    href={`https://basescan.org/token/${result.tokenAddress}`}
-                    target="_blank"
-                    className="block underline"
-                  >
-                    View on BaseScan
-                  </a>
-
-                  <a
-                    href={`https://www.geckoterminal.com/base/pools/${result.poolId}`}
-                    target="_blank"
-                    className="block underline"
-                  >
-                    View on GeckoTerminal
-                  </a>
-
-                  <a
-                    href={`https://swap.bankr.bot/?outputToken=${result.tokenAddress}`}
-                    target="_blank"
-                    className="block underline"
-                  >
-                    Trade on Bankr Swap
-                  </a>
-
-                </div>
-
-                <p className="mt-4 opacity-70">
-                  &gt; END OF TRANSMISSION
-                </p>
-
-              </div>
-            )}
-
-          </div>
-
-          {/* HISTORY */}
-          {history.length > 0 && (
-            <div className="border-t border-green-400 p-6">
-
-              <p className="mb-4 text-sm">
-                &gt; DEPLOY HISTORY
-              </p>
-
-              <div className="space-y-2 text-sm">
-
-                {history.map((h, i) => (
-                  <div key={i} className="border border-green-400 p-3 break-words">
-
-                    <p>{h.tokenAddress}</p>
-
-                    <a
-                      href={`https://basescan.org/token/${h.tokenAddress}`}
-                      target="_blank"
-                      className="underline"
-                    >
-                      View
-                    </a>
-
-                  </div>
-                ))}
-
-              </div>
-
+        {/* OUTPUT */}
+        <div className="mt-6 min-h-[180px]">
+          {loading && (
+            <div>
+              <p>&gt; connecting to bankr infra...</p>
+              <p>&gt; generating deployment wallet...</p>
+              <p>&gt; broadcasting transaction...</p>
             </div>
           )}
 
+          {result?.success && (
+            <div className="space-y-2">
+              <p>&gt; DEPLOY SUCCESS</p>
+
+              <a
+                href={`https://basescan.org/token/${result.tokenAddress}`}
+                target="_blank"
+                className="underline"
+              >
+                View on BaseScan
+              </a>
+
+              <a
+                href={`https://www.geckoterminal.com/base/pools/${result.poolId}`}
+                target="_blank"
+                className="underline"
+              >
+                View on GeckoTerminal
+              </a>
+
+              <a
+                href={`https://swap.bankr.bot/?outputToken=${result.tokenAddress}`}
+                target="_blank"
+                className="underline"
+              >
+                Trade on Bankr Swap
+              </a>
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* USER GUIDE */}
+      <div className="max-w-3xl mx-auto border border-green-400 p-6 mt-10">
+
+        <h2 className="text-2xl mb-4">
+          HOW TO DEPLOY A TOKEN
+        </h2>
+
+        <p className="mb-4">
+          Only token name and creator wallet are required.
+          All other fields are optional.
+        </p>
+
+        <div className="space-y-2 text-sm">
+
+          <p>&gt; Token Name — Name of your token</p>
+          <p>&gt; Creator Wallet — Receives trading fees</p>
+          <p>&gt; Symbol — Auto-generated if empty</p>
+          <p>&gt; Description — Stored on-chain</p>
+          <p>&gt; Image — Public image URL</p>
+          <p>&gt; Tweet — Optional announcement link</p>
+          <p>&gt; Website — Optional project site</p>
+
+        </div>
+
+        <div className="mt-6 text-sm">
+
+          <p className="mb-2">&gt; Upload token image:</p>
+
+          <a
+            href="https://imgbb.com/"
+            target="_blank"
+            className="underline"
+          >
+            https://imgbb.com/
+          </a>
+
+        </div>
+
+        <p className="mt-6 text-sm opacity-70">
+          Deployment is permanent. Tokens launch on Base chain.
+        </p>
 
       </div>
 
