@@ -24,9 +24,9 @@ export default function Home() {
           </button>
         </Link>
 
-        <Link href="/intel">
+        <Link href="/agent">
           <button className="border px-6 py-3 hover:bg-green-400 hover:text-black">
-            INTEL MODULE
+            AGENT MODULE
           </button>
         </Link>
       </div>
