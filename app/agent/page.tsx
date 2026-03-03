@@ -6,45 +6,13 @@ export default function AgentPage() {
   const [logs, setLogs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [tokenAddress, setTokenAddress] = useState<string | null>(null);
-  const [booted, setBooted] = useState(false);
-  const logRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const logRef = useRef<HTMLDivElement>(null);
 
-  // AUTO SCROLL
-  useEffect(() => {
-    if (logRef.current) {
-      logRef.current.scrollTop = logRef.current.scrollHeight;
-    }
-  }, [logs]);
-
-  // BOOT SEQUENCE
-  useEffect(() => {
-    const boot = async () => {
-      const lines = [
-        "[BOOT] Initializing blacksite node...",
-        "[AUTH] Partner API handshake complete",
-        "[NETWORK] Base mainnet locked",
-        "[LLM] Agent cognition online",
-        "[ACCESS] Level: PARTNER",
-        "[STATUS] Awaiting intent..."
-      ];
-
-      for (let line of lines) {
-        await new Promise(r => setTimeout(r, 600));
-        setLogs(prev => [...prev, line]);
-      }
-
-      setBooted(true);
-    };
-
-    boot();
-  }, []);
-
-  // MATRIX RAIN
+  // MATRIX RAIN (SUBTLE)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -54,14 +22,12 @@ export default function AgentPage() {
     const letters = "01";
     const fontSize = 14;
     const columns = canvas.width / fontSize;
-
     const drops: number[] = [];
-    for (let i = 0; i < columns; i++) {
-      drops[i] = 1;
-    }
+
+    for (let i = 0; i < columns; i++) drops[i] = 1;
 
     const draw = () => {
-      ctx.fillStyle = "rgba(0,0,0,0.05)";
+      ctx.fillStyle = "rgba(0,0,0,0.08)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.fillStyle = "#00ff41";
@@ -78,9 +44,14 @@ export default function AgentPage() {
       }
     };
 
-    const interval = setInterval(draw, 33);
+    const interval = setInterval(draw, 40);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (logRef.current)
+      logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [logs]);
 
   const execute = async () => {
     if (!message) return;
@@ -90,11 +61,10 @@ export default function AgentPage() {
 
     setLogs(prev => [
       ...prev,
-      `[INTENT] ${message}`,
-      "[PARSE] Extracting parameters...",
-      "[COGNITION] Generating metadata...",
-      "[PAYLOAD] Constructing deploy payload...",
-      "[EXECUTION] Broadcasting transaction..."
+      `> ${message}`,
+      "> parsing intent...",
+      "> generating deployment payload...",
+      "> broadcasting to base..."
     ]);
 
     try {
@@ -108,113 +78,105 @@ export default function AgentPage() {
       );
 
       const data = await res.json();
+
       const ca =
         data?.deployResult?.tokenAddress ||
         data?.deployResult?.address ||
         null;
 
       if (!ca) {
-        setLogs(prev => [...prev, "[ERROR] Execution failed"]);
+        setLogs(prev => [...prev, "> execution failed"]);
         setLoading(false);
         return;
       }
 
       setLogs(prev => [
         ...prev,
-        "[CONFIRMATION] Block confirmed",
-        `[ASSET] ${ca}`,
-        "[MARKET] Live on Base"
+        "> confirmed",
+        `> contract: ${ca}`,
+        "> market live"
       ]);
 
       setTokenAddress(ca);
     } catch {
-      setLogs(prev => [...prev, "[ERROR] Agent failure"]);
+      setLogs(prev => [...prev, "> agent failure"]);
     }
 
     setLoading(false);
   };
 
   return (
-    <main className="relative min-h-screen bg-black text-emerald-500 font-mono p-6 overflow-hidden">
+    <main className="relative min-h-screen bg-black text-green-400 font-mono flex items-center justify-center px-6">
 
-      {/* MATRIX CANVAS */}
+      {/* MATRIX BACKGROUND */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 opacity-10 pointer-events-none"
       />
 
-      {/* CRT SCANLINES */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0)_50%,rgba(0,0,0,0.08)_50%)] bg-[size:100%_4px] pointer-events-none" />
-
-      <div className="relative z-10 max-w-4xl mx-auto">
+      <div className="relative z-10 w-full max-w-3xl">
 
         {/* HEADER */}
-        <div className="mb-12">
-          <h1 className="text-4xl tracking-widest text-emerald-400 animate-pulse">
-            BANKRSYNTH NODE_01
+        <div className="mb-12 text-center">
+          <h1 className="text-4xl tracking-widest">
+            BANKRSYNTH
           </h1>
-          <p className="text-xs text-emerald-700 mt-2">
-            Autonomous Market Execution Layer — BASE
-          </p>
-          <p className="text-xs text-emerald-800 mt-1">
-            ACCESS LEVEL: PARTNER
+          <p className="text-sm opacity-60 mt-2">
+            Execution Node — Base
           </p>
         </div>
 
-        {/* TERMINAL */}
-        <div className="border border-emerald-900 p-6 bg-black/80 shadow-[0_0_40px_rgba(0,255,100,0.15)]">
+        {/* TERMINAL BOX */}
+        <div className="border border-green-500 bg-black/80 p-8 shadow-[0_0_40px_#00ff9c33]">
 
           <div
             ref={logRef}
-            className="h-80 overflow-y-auto text-sm space-y-1 mb-6"
+            className="h-64 overflow-y-auto text-sm space-y-1 mb-6"
           >
             {logs.map((line, i) => (
               <p key={i}>{line}</p>
             ))}
-            {loading && <p>[PENDING] Awaiting confirmation...</p>}
+            {loading && <p> awaiting confirmation...</p>}
           </div>
 
-          {booted && (
-            <>
-              <div className="flex items-center">
-                <span className="mr-2 text-emerald-600">&gt;</span>
-                <input
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="flex-1 bg-black outline-none text-emerald-400"
-                  placeholder="Enter intent..."
-                />
-                <span className="animate-pulse ml-1">█</span>
-              </div>
+          {/* INPUT */}
+          <div className="flex items-center border-t border-green-500 pt-4">
+            <span className="mr-2">&gt;</span>
+            <input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="flex-1 bg-black outline-none"
+              placeholder="enter command..."
+            />
+          </div>
 
-              <button
-                onClick={execute}
-                className="mt-4 w-full border border-emerald-800 py-2 hover:bg-emerald-900/20 transition"
-              >
-                EXECUTE
-              </button>
-            </>
-          )}
+          <button
+            onClick={execute}
+            className="mt-4 w-full border border-green-500 py-2 hover:bg-green-500 hover:text-black transition"
+          >
+            EXECUTE
+          </button>
 
+          {/* LINKS */}
           {tokenAddress && (
-            <div className="mt-6 border border-emerald-800 p-4 text-xs space-y-3">
-              <p>[ASSET ACCESS]</p>
+            <div className="mt-6 border-t border-green-500 pt-4 space-y-3 text-xs">
 
               <a
                 href={`https://basescan.org/token/${tokenAddress}`}
                 target="_blank"
-                className="block border border-emerald-900 py-2 text-center hover:bg-emerald-900/20"
+                className="block border border-green-500 py-2 text-center hover:bg-green-500 hover:text-black"
               >
-                OPEN BASESCAN
+                VIEW ON BASESCAN
               </a>
 
               <a
                 href={`https://www.geckoterminal.com/base/tokens/${tokenAddress}`}
                 target="_blank"
-                className="block border border-emerald-900 py-2 text-center hover:bg-emerald-900/20"
+                className="block border border-green-500 py-2 text-center hover:bg-green-500 hover:text-black"
               >
-                OPEN GECKOTERMINAL
+                VIEW ON GECKOTERMINAL
               </a>
+
             </div>
           )}
         </div>
