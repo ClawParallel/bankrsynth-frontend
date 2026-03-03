@@ -3,13 +3,11 @@ import { useState, useEffect, useRef } from "react";
 
 export default function AgentPage() {
   const [message, setMessage] = useState("");
-  const [logs, setLogs] = useState<string[]>([]);
+  const [response, setResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [tokenAddress, setTokenAddress] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const logRef = useRef<HTMLDivElement>(null);
 
-  // MATRIX RAIN (SUBTLE)
+  // Subtle Matrix Background
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -30,7 +28,7 @@ export default function AgentPage() {
       ctx.fillStyle = "rgba(0,0,0,0.08)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = "#00ff41";
+      ctx.fillStyle = "#00ff88";
       ctx.font = fontSize + "px monospace";
 
       for (let i = 0; i < drops.length; i++) {
@@ -48,24 +46,10 @@ export default function AgentPage() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    if (logRef.current)
-      logRef.current.scrollTop = logRef.current.scrollHeight;
-  }, [logs]);
-
   const execute = async () => {
     if (!message) return;
-
     setLoading(true);
-    setTokenAddress(null);
-
-    setLogs(prev => [
-      ...prev,
-      `> ${message}`,
-      "> parsing intent...",
-      "> generating deployment payload...",
-      "> broadcasting to base..."
-    ]);
+    setResponse(null);
 
     try {
       const res = await fetch(
@@ -78,37 +62,27 @@ export default function AgentPage() {
       );
 
       const data = await res.json();
-
       const ca =
         data?.deployResult?.tokenAddress ||
         data?.deployResult?.address ||
         null;
 
       if (!ca) {
-        setLogs(prev => [...prev, "> execution failed"]);
-        setLoading(false);
-        return;
+        setResponse("Deployment failed.");
+      } else {
+        setResponse(ca);
       }
-
-      setLogs(prev => [
-        ...prev,
-        "> confirmed",
-        `> contract: ${ca}`,
-        "> market live"
-      ]);
-
-      setTokenAddress(ca);
     } catch {
-      setLogs(prev => [...prev, "> agent failure"]);
+      setResponse("Agent error.");
     }
 
     setLoading(false);
   };
 
   return (
-    <main className="relative min-h-screen bg-black text-green-400 font-mono flex items-center justify-center px-6">
+    <main className="relative min-h-screen bg-[#050b1a] text-white flex flex-col items-center px-6 py-16">
 
-      {/* MATRIX BACKGROUND */}
+      {/* Matrix Background */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 opacity-10 pointer-events-none"
@@ -116,70 +90,75 @@ export default function AgentPage() {
 
       <div className="relative z-10 w-full max-w-3xl">
 
-        {/* HEADER */}
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl tracking-widest">
+        {/* LOGO */}
+        <div className="flex justify-center mb-6">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-400 to-purple-600 flex items-center justify-center shadow-[0_0_40px_rgba(0,255,255,0.4)]">
+            🤖
+          </div>
+        </div>
+
+        {/* TITLE */}
+        <div className="text-center mb-10">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
             BANKRSYNTH
           </h1>
-          <p className="text-sm opacity-60 mt-2">
-            Execution Node — Base
+          <p className="mt-4 text-gray-400 tracking-widest text-sm">
+            AUTONOMOUS AGENT — BASE DEPLOYMENT NODE
           </p>
         </div>
 
-        {/* TERMINAL BOX */}
-        <div className="border border-green-500 bg-black/80 p-8 shadow-[0_0_40px_#00ff9c33]">
+        {/* AGENT PANEL */}
+        <div className="rounded-2xl border border-cyan-500/30 bg-[#0b1225]/80 p-8 shadow-[0_0_60px_rgba(0,255,255,0.2)]">
 
-          <div
-            ref={logRef}
-            className="h-64 overflow-y-auto text-sm space-y-1 mb-6"
-          >
-            {logs.map((line, i) => (
-              <p key={i}>{line}</p>
-            ))}
-            {loading && <p> awaiting confirmation...</p>}
-          </div>
+          <p className="text-gray-300 mb-6">
+            🤖 BankrSynth: SYSTEM ONLINE. AWAITING COMMAND.
+          </p>
 
-          {/* INPUT */}
-          <div className="flex items-center border-t border-green-500 pt-4">
-            <span className="mr-2">&gt;</span>
-            <input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="flex-1 bg-black outline-none"
-              placeholder="enter command..."
-            />
-          </div>
+          <input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Speak to the agent..."
+            className="w-full rounded-xl bg-black/60 border border-cyan-400/20 p-4 text-white outline-none mb-4"
+          />
 
           <button
             onClick={execute}
-            className="mt-4 w-full border border-green-500 py-2 hover:bg-green-500 hover:text-black transition"
+            className="w-full rounded-xl py-3 font-semibold bg-gradient-to-r from-cyan-500 to-purple-600 hover:opacity-90"
           >
-            EXECUTE
+            {loading ? "Processing..." : "Send"}
           </button>
-
-          {/* LINKS */}
-          {tokenAddress && (
-            <div className="mt-6 border-t border-green-500 pt-4 space-y-3 text-xs">
-
-              <a
-                href={`https://basescan.org/token/${tokenAddress}`}
-                target="_blank"
-                className="block border border-green-500 py-2 text-center hover:bg-green-500 hover:text-black"
-              >
-                VIEW ON BASESCAN
-              </a>
-
-              <a
-                href={`https://www.geckoterminal.com/base/tokens/${tokenAddress}`}
-                target="_blank"
-                className="block border border-green-500 py-2 text-center hover:bg-green-500 hover:text-black"
-              >
-                VIEW ON GECKOTERMINAL
-              </a>
-
-            </div>
-          )}
         </div>
+
+        {/* RESULT PANEL */}
+        {response && (
+          <div className="mt-10 rounded-2xl border border-purple-500/30 bg-[#0b1225]/80 p-8 shadow-[0_0_60px_rgba(168,85,247,0.2)]">
+
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent mb-4">
+              DEPLOYED TOKEN
+            </h2>
+
+            <p className="text-gray-300 break-all mb-6">{response}</p>
+
+            <div className="space-y-3 text-sm">
+              <a
+                href={`https://basescan.org/token/${response}`}
+                target="_blank"
+                className="block border border-cyan-400/30 py-2 text-center rounded-xl hover:bg-cyan-500/10"
+              >
+                View on BaseScan
+              </a>
+
+              <a
+                href={`https://www.geckoterminal.com/base/tokens/${response}`}
+                target="_blank"
+                className="block border border-purple-400/30 py-2 text-center rounded-xl hover:bg-purple-500/10"
+              >
+                View on GeckoTerminal
+              </a>
+            </div>
+
+          </div>
+        )}
       </div>
     </main>
   );
