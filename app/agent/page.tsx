@@ -17,7 +17,7 @@ export default function AgentPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
 
-  /* ================= MATRIX ================= */
+  /* ================= MATRIX RAIN ================= */
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -68,6 +68,7 @@ export default function AgentPage() {
     if (!input.trim()) return;
 
     const userMsg = input;
+
     setMessages(prev => [...prev, `👤 YOU: ${userMsg}`]);
     setInput("");
     setAgentTyping(true);
@@ -118,7 +119,6 @@ export default function AgentPage() {
       <canvas ref={canvasRef} className={styles.canvas} />
 
       <div className={styles.overlay}>
-
         <h1 className={styles.title}>BANKRSYNTH</h1>
         <p className={styles.subtitle}>
           AUTONOMOUS AGENT — BASE DEPLOYMENT NODE
@@ -132,7 +132,7 @@ export default function AgentPage() {
 
             {agentTyping && (
               <div className={styles.typing}>
-                BankrSynth is executing
+                BankrSynth executing
                 <span className={styles.dots}></span>
               </div>
             )}
@@ -145,7 +145,7 @@ export default function AgentPage() {
               placeholder="Deploy a token..."
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
-            <button onClick={sendMessage}>Deploy</button>
+            <button onClick={sendMessage}>EXECUTE</button>
           </div>
         </div>
 
@@ -165,7 +165,7 @@ export default function AgentPage() {
                 target="_blank"
                 className={styles.primaryBtn}
               >
-                View on BaseScan
+                VIEW ON BASESCAN
               </a>
 
               <a
@@ -173,14 +173,14 @@ export default function AgentPage() {
                 target="_blank"
                 className={styles.secondaryBtn}
               >
-                View on GeckoTerminal
+                VIEW ON GECKOTERMINAL
               </a>
             </div>
           </div>
         )}
 
         <div className={styles.footer}>
-          Powered by Bankr • Base • Autonomous Agent Infrastructure
+          BankrSynth Autonomous Execution Layer • Base Network
         </div>
       </div>
     </div>
