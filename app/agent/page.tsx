@@ -2,29 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type Message = {
-  role: "assistant" | "user";
-  content: string;
-};
-
 export default function AgentPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "SYSTEM ONLINE. AWAITING COMMAND."
-    }
+  const [messages, setMessages] = useState<string[]>([
+    "🤖 BankrSynth: SYSTEM ONLINE. AWAITING COMMAND."
   ]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
   const [ca, setCa] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<HTMLDivElement>(null);
 
-  /* ================= MATRIX ================= */
+  /* ================= MATRIX RAIN ================= */
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -32,16 +24,15 @@ export default function AgentPage() {
     canvas.height = window.innerHeight;
 
     const letters = "01";
-    const fontSize = 14;
+    const fontSize = 16;
     const columns = canvas.width / fontSize;
     const drops: number[] = [];
 
     for (let i = 0; i < columns; i++) drops[i] = 1;
 
     const draw = () => {
-      ctx.fillStyle = "rgba(0,0,0,0.07)";
+      ctx.fillStyle = "rgba(0,0,0,0.08)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
       ctx.fillStyle = "#00ff88";
       ctx.font = fontSize + "px monospace";
 
@@ -62,17 +53,17 @@ export default function AgentPage() {
 
   /* ================= AUTO SCROLL ================= */
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesRef.current?.scrollTo({
+      top: messagesRef.current.scrollHeight,
+      behavior: "smooth"
+    });
   }, [messages]);
 
   /* ================= SEND ================= */
   const sendMessage = async () => {
-    if (!input.trim() || loading) return;
+    if (!input.trim()) return;
 
-    const userMsg = input;
-    setMessages(prev => [...prev, { role: "user", content: userMsg }]);
-    setInput("");
-    setLoading(true);
+    setMessages(prev => [...prev, `👤 YOU: ${input}`]);
 
     try {
       const res = await fetch(
@@ -80,115 +71,161 @@ export default function AgentPage() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: userMsg })
+          body: JSON.stringify({ message: input })
         }
       );
 
       const data = await res.json();
+
       const deployedCA =
         data?.deployResult?.tokenAddress ||
         data?.deployResult?.address ||
         null;
 
       if (!deployedCA) {
-        setMessages(prev => [
-          ...prev,
-          { role: "assistant", content: "Deployment failed." }
-        ]);
+        setMessages(prev => [...prev, "❌ Deployment failed"]);
       } else {
         setMessages(prev => [
           ...prev,
-          { role: "assistant", content: "Deployment successful." }
+          "🤖 BankrSynth: Deployment successful."
         ]);
         setCa(deployedCA);
       }
     } catch {
-      setMessages(prev => [
-        ...prev,
-        { role: "assistant", content: "Agent offline." }
-      ]);
+      setMessages(prev => [...prev, "❌ Agent offline"]);
     }
 
-    setLoading(false);
+    setInput("");
+  };
+
+  const copyCA = () => {
+    if (!ca) return;
+    navigator.clipboard.writeText(ca);
+    alert("CA copied");
   };
 
   return (
-    <div className="relative min-h-screen font-mono text-white">
-
-      {/* MATRIX */}
+    <div style={{ fontFamily: "'Share Tech Mono', monospace" }}>
+      {/* MATRIX CANVAS */}
       <canvas
         ref={canvasRef}
-        className="fixed inset-0 -z-10 opacity-15"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          zIndex: -1
+        }}
       />
 
-      <div className="min-h-screen flex flex-col items-center px-6 py-12 bg-black/90 backdrop-blur-md">
-
+      <div
+        style={{
+          background: "rgba(5,7,15,0.92)",
+          minHeight: "100vh",
+          padding: "30px 20px",
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          color: "white"
+        }}
+      >
         {/* LOGO */}
-        <div className="w-24 h-24 rounded-full mb-4 shadow-[0_0_40px_#00e0ff] bg-gradient-to-br from-cyan-400 to-purple-600 flex items-center justify-center text-2xl">
+        <div
+          style={{
+            width: 90,
+            height: 90,
+            borderRadius: "50%",
+            marginBottom: 16,
+            boxShadow: "0 0 40px #00e0ff",
+            background:
+              "linear-gradient(90deg,#00e0ff,#7a5cff)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 28
+          }}
+        >
           🤖
         </div>
 
         {/* TITLE */}
-        <h1 className="text-4xl md:text-5xl font-bold tracking-widest bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+        <div
+          style={{
+            fontFamily: "Orbitron, sans-serif",
+            fontSize: 46,
+            letterSpacing: 3,
+            background:
+              "linear-gradient(90deg,#00e0ff,#7a5cff)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent"
+          }}
+        >
           BANKRSYNTH
-        </h1>
+        </div>
 
-        <p className="opacity-70 mt-3 mb-10 text-center max-w-xl">
+        <div style={{ opacity: 0.7, marginBottom: 28 }}>
           AUTONOMOUS AGENT — BASE DEPLOYMENT NODE
-        </p>
+        </div>
 
         {/* CHATBOX */}
-        <div className="w-full max-w-3xl bg-black/50 backdrop-blur-xl p-6 rounded-3xl border border-cyan-400/30 shadow-[0_0_50px_rgba(0,224,255,0.12)] flex flex-col">
-
-          {/* MESSAGES */}
-          <div className="h-72 overflow-y-auto space-y-4 mb-6">
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 720,
+            background: "rgba(0,0,0,0.45)",
+            backdropFilter: "blur(18px)",
+            padding: 20,
+            borderRadius: 18,
+            border: "1px solid rgba(0,224,255,0.25)",
+            boxShadow: "0 0 40px rgba(0,224,255,0.15)"
+          }}
+        >
+          <div
+            ref={messagesRef}
+            style={{
+              height: 260,
+              overflowY: "auto",
+              textAlign: "left",
+              marginBottom: 14,
+              fontSize: 14
+            }}
+          >
             {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex ${
-                  msg.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`px-5 py-3 rounded-2xl max-w-[70%] text-sm ${
-                    msg.role === "user"
-                      ? "bg-gradient-to-r from-cyan-400 to-purple-500 text-black font-semibold"
-                      : "bg-[#0b0f1a] border border-cyan-400/20"
-                  }`}
-                >
-                  {msg.role === "assistant" && (
-                    <span className="opacity-60 text-xs block mb-1">
-                      BankrSynth
-                    </span>
-                  )}
-                  {msg.content}
-                </div>
-              </div>
+              <div key={i}>{msg}</div>
             ))}
-
-            {loading && (
-              <div className="flex justify-start">
-                <div className="px-5 py-3 rounded-2xl bg-[#0b0f1a] border border-cyan-400/20 text-sm">
-                  BankrSynth is deploying<span className="animate-pulse">...</span>
-                </div>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
           </div>
 
-          {/* INPUT */}
-          <div className="flex gap-4">
+          <div style={{ display: "flex", gap: 10 }}>
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Deploy a token..."
-              className="flex-1 p-4 rounded-xl bg-[#0b0f1a] outline-none text-sm"
+              style={{
+                flex: 1,
+                padding: 14,
+                borderRadius: 10,
+                border: "none",
+                background: "#0b0f1a",
+                color: "white",
+                outline: "none"
+              }}
             />
 
             <button
               onClick={sendMessage}
-              className="px-8 py-4 rounded-xl bg-gradient-to-r from-cyan-400 to-purple-500 text-black font-bold transition hover:opacity-90"
+              style={{
+                padding: "14px 22px",
+                border: "none",
+                borderRadius: 10,
+                background:
+                  "linear-gradient(90deg,#00e0ff,#7a5cff)",
+                color: "black",
+                fontWeight: "bold",
+                cursor: "pointer",
+                fontFamily: "Orbitron, sans-serif"
+              }}
             >
               Deploy
             </button>
@@ -197,29 +234,65 @@ export default function AgentPage() {
 
         {/* TOKEN PANEL */}
         {ca && (
-          <div className="w-full max-w-3xl mt-10 bg-black/50 backdrop-blur-xl p-6 rounded-3xl border border-purple-500/40">
-
-            <h2 className="text-lg font-bold mb-4 bg-gradient-to-r from-purple-500 to-cyan-400 bg-clip-text text-transparent">
+          <div
+            style={{
+              marginTop: 24,
+              width: "100%",
+              maxWidth: 720,
+              background: "rgba(0,0,0,0.4)",
+              backdropFilter: "blur(18px)",
+              padding: 18,
+              borderRadius: 16,
+              border:
+                "1px solid rgba(122,92,255,0.4)"
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "Orbitron, sans-serif",
+                fontSize: 20,
+                marginBottom: 6,
+                background:
+                  "linear-gradient(90deg,#7a5cff,#00e0ff)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent"
+              }}
+            >
               DEPLOYED TOKEN
-            </h2>
+            </div>
 
-            <div className="bg-[#0b0f1a] p-3 rounded text-xs break-all mb-6">
+            <div
+              style={{
+                background: "#0b0f1a",
+                padding: 10,
+                borderRadius: 8,
+                fontSize: 12,
+                wordBreak: "break-all",
+                marginBottom: 10
+              }}
+            >
               {ca}
             </div>
 
-            <div className="flex flex-col gap-4">
+            <button onClick={copyCA} style={{ marginBottom: 12 }}>
+              COPY CA
+            </button>
+
+            <div>
               <a
                 href={`https://basescan.org/token/${ca}`}
                 target="_blank"
-                className="text-center py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-purple-500 text-black font-bold"
               >
                 VIEW ON BASESCAN
               </a>
+            </div>
 
+            <br />
+
+            <div>
               <a
                 href={`https://www.geckoterminal.com/base/tokens/${ca}`}
                 target="_blank"
-                className="text-center py-3 rounded-xl border border-cyan-400/30"
               >
                 VIEW ON GECKOTERMINAL
               </a>
@@ -227,7 +300,7 @@ export default function AgentPage() {
           </div>
         )}
 
-        <div className="mt-12 opacity-50 text-xs text-center">
+        <div style={{ marginTop: 36, opacity: 0.5, fontSize: 12 }}>
           Powered by Bankr • Base • Autonomous Agent Infrastructure
         </div>
       </div>
