@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import styles from "./agent.module.css";
 
 export default function AgentPage() {
   const [messages, setMessages] = useState<string[]>([
@@ -12,7 +13,7 @@ export default function AgentPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
 
-  /* ================= MATRIX RAIN ================= */
+  /* ================= MATRIX ================= */
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -59,7 +60,6 @@ export default function AgentPage() {
     });
   }, [messages]);
 
-  /* ================= SEND ================= */
   const sendMessage = async () => {
     if (!input.trim()) return;
 
@@ -76,11 +76,9 @@ export default function AgentPage() {
       );
 
       const data = await res.json();
-
       const deployedCA =
         data?.deployResult?.tokenAddress ||
-        data?.deployResult?.address ||
-        null;
+        data?.deployResult?.address;
 
       if (!deployedCA) {
         setMessages(prev => [...prev, "❌ Deployment failed"]);
@@ -105,202 +103,59 @@ export default function AgentPage() {
   };
 
   return (
-    <div style={{ fontFamily: "'Share Tech Mono', monospace" }}>
-      {/* MATRIX CANVAS */}
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          zIndex: -1
-        }}
-      />
+    <div className={styles.container}>
+      <canvas ref={canvasRef} className={styles.canvas} />
 
-      <div
-        style={{
-          background: "rgba(5,7,15,0.92)",
-          minHeight: "100vh",
-          padding: "30px 20px",
-          textAlign: "center",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          color: "white"
-        }}
-      >
-        {/* LOGO */}
-        <div
-          style={{
-            width: 90,
-            height: 90,
-            borderRadius: "50%",
-            marginBottom: 16,
-            boxShadow: "0 0 40px #00e0ff",
-            background:
-              "linear-gradient(90deg,#00e0ff,#7a5cff)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 28
-          }}
-        >
-          🤖
-        </div>
+      <div className={styles.overlay}>
+        <div className={styles.logo}>🤖</div>
 
-        {/* TITLE */}
-        <div
-          style={{
-            fontFamily: "Orbitron, sans-serif",
-            fontSize: 46,
-            letterSpacing: 3,
-            background:
-              "linear-gradient(90deg,#00e0ff,#7a5cff)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent"
-          }}
-        >
-          BANKRSYNTH
-        </div>
-
-        <div style={{ opacity: 0.7, marginBottom: 28 }}>
+        <h1 className={styles.title}>BANKRSYNTH</h1>
+        <p className={styles.subtitle}>
           AUTONOMOUS AGENT — BASE DEPLOYMENT NODE
-        </div>
+        </p>
 
-        {/* CHATBOX */}
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 720,
-            background: "rgba(0,0,0,0.45)",
-            backdropFilter: "blur(18px)",
-            padding: 20,
-            borderRadius: 18,
-            border: "1px solid rgba(0,224,255,0.25)",
-            boxShadow: "0 0 40px rgba(0,224,255,0.15)"
-          }}
-        >
-          <div
-            ref={messagesRef}
-            style={{
-              height: 260,
-              overflowY: "auto",
-              textAlign: "left",
-              marginBottom: 14,
-              fontSize: 14
-            }}
-          >
+        <div className={styles.chatbox}>
+          <div ref={messagesRef} className={styles.messages}>
             {messages.map((msg, i) => (
               <div key={i}>{msg}</div>
             ))}
           </div>
 
-          <div style={{ display: "flex", gap: 10 }}>
+          <div className={styles.inputArea}>
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Deploy a token..."
-              style={{
-                flex: 1,
-                padding: 14,
-                borderRadius: 10,
-                border: "none",
-                background: "#0b0f1a",
-                color: "white",
-                outline: "none"
-              }}
             />
-
-            <button
-              onClick={sendMessage}
-              style={{
-                padding: "14px 22px",
-                border: "none",
-                borderRadius: 10,
-                background:
-                  "linear-gradient(90deg,#00e0ff,#7a5cff)",
-                color: "black",
-                fontWeight: "bold",
-                cursor: "pointer",
-                fontFamily: "Orbitron, sans-serif"
-              }}
-            >
-              Deploy
-            </button>
+            <button onClick={sendMessage}>Deploy</button>
           </div>
         </div>
 
-        {/* TOKEN PANEL */}
         {ca && (
-          <div
-            style={{
-              marginTop: 24,
-              width: "100%",
-              maxWidth: 720,
-              background: "rgba(0,0,0,0.4)",
-              backdropFilter: "blur(18px)",
-              padding: 18,
-              borderRadius: 16,
-              border:
-                "1px solid rgba(122,92,255,0.4)"
-            }}
-          >
-            <div
-              style={{
-                fontFamily: "Orbitron, sans-serif",
-                fontSize: 20,
-                marginBottom: 6,
-                background:
-                  "linear-gradient(90deg,#7a5cff,#00e0ff)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent"
-              }}
+          <div className={styles.tokenPanel}>
+            <div className={styles.tokenTitle}>DEPLOYED TOKEN</div>
+
+            <div className={styles.ca}>{ca}</div>
+
+            <button onClick={copyCA}>COPY CA</button>
+
+            <a
+              href={`https://basescan.org/token/${ca}`}
+              target="_blank"
             >
-              DEPLOYED TOKEN
-            </div>
+              VIEW ON BASESCAN
+            </a>
 
-            <div
-              style={{
-                background: "#0b0f1a",
-                padding: 10,
-                borderRadius: 8,
-                fontSize: 12,
-                wordBreak: "break-all",
-                marginBottom: 10
-              }}
+            <a
+              href={`https://www.geckoterminal.com/base/tokens/${ca}`}
+              target="_blank"
             >
-              {ca}
-            </div>
-
-            <button onClick={copyCA} style={{ marginBottom: 12 }}>
-              COPY CA
-            </button>
-
-            <div>
-              <a
-                href={`https://basescan.org/token/${ca}`}
-                target="_blank"
-              >
-                VIEW ON BASESCAN
-              </a>
-            </div>
-
-            <br />
-
-            <div>
-              <a
-                href={`https://www.geckoterminal.com/base/tokens/${ca}`}
-                target="_blank"
-              >
-                VIEW ON GECKOTERMINAL
-              </a>
-            </div>
+              VIEW ON GECKOTERMINAL
+            </a>
           </div>
         )}
 
-        <div style={{ marginTop: 36, opacity: 0.5, fontSize: 12 }}>
+        <div className={styles.footer}>
           Powered by Bankr • Base • Autonomous Agent Infrastructure
         </div>
       </div>
