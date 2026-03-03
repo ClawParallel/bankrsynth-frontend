@@ -5,10 +5,14 @@ import styles from "./agent.module.css";
 
 export default function AgentPage() {
   const [messages, setMessages] = useState<string[]>([
-    "🤖 BankrSynth: SYSTEM ONLINE. AWAITING COMMAND."
+    "▸ BankrSynth node initialized.",
+    "▸ Connected to Base execution layer.",
+    "▸ Awaiting deployment command."
   ]);
+
   const [input, setInput] = useState("");
   const [ca, setCa] = useState<string | null>(null);
+  const [agentTyping, setAgentTyping] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
@@ -17,7 +21,6 @@ export default function AgentPage() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -58,12 +61,16 @@ export default function AgentPage() {
       top: messagesRef.current.scrollHeight,
       behavior: "smooth"
     });
-  }, [messages]);
+  }, [messages, agentTyping]);
 
+  /* ================= SEND ================= */
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    setMessages(prev => [...prev, `👤 YOU: ${input}`]);
+    const userMsg = input;
+    setMessages(prev => [...prev, `👤 YOU: ${userMsg}`]);
+    setInput("");
+    setAgentTyping(true);
 
     try {
       const res = await fetch(
@@ -71,7 +78,7 @@ export default function AgentPage() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: input })
+          body: JSON.stringify({ message: userMsg })
         }
       );
 
@@ -80,20 +87,24 @@ export default function AgentPage() {
         data?.deployResult?.tokenAddress ||
         data?.deployResult?.address;
 
-      if (!deployedCA) {
-        setMessages(prev => [...prev, "❌ Deployment failed"]);
-      } else {
-        setMessages(prev => [
-          ...prev,
-          "🤖 BankrSynth: Deployment successful."
-        ]);
-        setCa(deployedCA);
-      }
-    } catch {
-      setMessages(prev => [...prev, "❌ Agent offline"]);
-    }
+      setTimeout(() => {
+        setAgentTyping(false);
 
-    setInput("");
+        if (!deployedCA) {
+          setMessages(prev => [...prev, "✖ Deployment failed."]);
+        } else {
+          setMessages(prev => [
+            ...prev,
+            "✔ Deployment successful. Asset live on Base."
+          ]);
+          setCa(deployedCA);
+        }
+      }, 1800);
+
+    } catch {
+      setAgentTyping(false);
+      setMessages(prev => [...prev, "✖ Agent offline."]);
+    }
   };
 
   const copyCA = () => {
@@ -107,7 +118,6 @@ export default function AgentPage() {
       <canvas ref={canvasRef} className={styles.canvas} />
 
       <div className={styles.overlay}>
-        <div className={styles.logo}>🤖</div>
 
         <h1 className={styles.title}>BANKRSYNTH</h1>
         <p className={styles.subtitle}>
@@ -119,6 +129,13 @@ export default function AgentPage() {
             {messages.map((msg, i) => (
               <div key={i}>{msg}</div>
             ))}
+
+            {agentTyping && (
+              <div className={styles.typing}>
+                BankrSynth is executing
+                <span className={styles.dots}></span>
+              </div>
+            )}
           </div>
 
           <div className={styles.inputArea}>
@@ -126,6 +143,7 @@ export default function AgentPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Deploy a token..."
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
             <button onClick={sendMessage}>Deploy</button>
           </div>
@@ -137,21 +155,27 @@ export default function AgentPage() {
 
             <div className={styles.ca}>{ca}</div>
 
-            <button onClick={copyCA}>COPY CA</button>
+            <button className={styles.copyBtn} onClick={copyCA}>
+              COPY CA
+            </button>
 
-            <a
-              href={`https://basescan.org/token/${ca}`}
-              target="_blank"
-            >
-              VIEW ON BASESCAN
-            </a>
+            <div className={styles.links}>
+              <a
+                href={`https://basescan.org/token/${ca}`}
+                target="_blank"
+                className={styles.primaryBtn}
+              >
+                View on BaseScan
+              </a>
 
-            <a
-              href={`https://www.geckoterminal.com/base/tokens/${ca}`}
-              target="_blank"
-            >
-              VIEW ON GECKOTERMINAL
-            </a>
+              <a
+                href={`https://www.geckoterminal.com/base/tokens/${ca}`}
+                target="_blank"
+                className={styles.secondaryBtn}
+              >
+                View on GeckoTerminal
+              </a>
+            </div>
           </div>
         )}
 
