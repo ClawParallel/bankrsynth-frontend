@@ -29,6 +29,13 @@ export default function Home() {
             AGENT MODULE
           </button>
         </Link>
+
+        {/* ✅ NEW AI TERMINAL */}
+        <Link href="/terminal">
+          <button className="border px-6 py-3 hover:bg-green-400 hover:text-black">
+            AI TERMINAL
+          </button>
+        </Link>
       </div>
 
     </main>
