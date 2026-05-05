@@ -1,103 +1,53 @@
 "use client";
-
 import { useEffect, useRef, useState } from "react";
-import Nav from "@/components/Nav";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
-const DEPLOY_STATES = [
-  "CONNECTING...",
-  "GENERATING...",
-  "BROADCASTING...",
-  "CONFIRMING...",
-];
+const DEPLOY_CYCLE = ["CONNECTING...", "GENERATING...", "BROADCASTING...", "CONFIRMING..."];
 
-const LOG_LINES = [
-  "> connecting to bankr infra...",
-  "> generating deployment wallet...",
-  "> signing and broadcasting transaction...",
-  "> waiting for Base confirmation...",
-  "> indexing token metadata...",
-];
-
-type Field = {
-  key: string;
-  label: string;
-  required?: boolean;
-  placeholder?: string;
-};
-
-const FIELDS: Field[] = [
-  { key: "name",        label: "TOKEN_NAME",       required: true,  placeholder: "e.g. DegensUnited" },
-  { key: "wallet",      label: "CREATOR_WALLET",   required: true,  placeholder: "0x..." },
-  { key: "symbol",      label: "SYMBOL",                            placeholder: "auto-generated if empty" },
-  { key: "description", label: "DESCRIPTION",                       placeholder: "one-liner about the token" },
-  { key: "image",       label: "IMAGE_URL",                         placeholder: "https://..." },
-  { key: "tweet",       label: "TWEET_URL",                         placeholder: "https://x.com/..." },
-  { key: "website",     label: "WEBSITE_URL",                       placeholder: "https://..." },
+const FIELDS = [
+  { key: "name",        label: "TOKEN_NAME",     required: true,  ph: "e.g. AgentForge"           },
+  { key: "wallet",      label: "CREATOR_WALLET", required: true,  ph: "0x..."                      },
+  { key: "symbol",      label: "SYMBOL",         required: false, ph: "auto-generated if empty"    },
+  { key: "description", label: "DESCRIPTION",    required: false, ph: "one-liner about your token" },
+  { key: "image",       label: "IMAGE_URL",      required: false, ph: "https://..."                },
+  { key: "tweet",       label: "TWEET_URL",      required: false, ph: "https://x.com/..."          },
+  { key: "website",     label: "WEBSITE_URL",    required: false, ph: "https://..."                },
 ];
 
 export default function LaunchPage() {
-  const [values, setValues] = useState<Record<string, string>>({
-    name: "", wallet: "", symbol: "", description: "", image: "", tweet: "", website: "",
-  });
-
+  const [values, setValues] = useState<Record<string, string>>(
+    Object.fromEntries(FIELDS.map((f) => [f.key, ""]))
+  );
   const [loading, setLoading] = useState(false);
-  const [deployStateIdx, setDeployStateIdx] = useState(0);
-  const [logLines, setLogLines] = useState<string[]>([]);
+  const [cycleIdx, setCycleIdx] = useState(0);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const deployIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const logIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const cycleRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    return () => {
-      if (deployIntervalRef.current) clearInterval(deployIntervalRef.current);
-      if (logIntervalRef.current) clearInterval(logIntervalRef.current);
-    };
+    return () => { if (cycleRef.current) clearInterval(cycleRef.current); };
   }, []);
 
-  const set = (key: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setValues((v) => ({ ...v, [key]: e.target.value }));
-
-  const startLoadingAnimations = () => {
-    setDeployStateIdx(0);
-    setLogLines([]);
-
-    let si = 0;
-    deployIntervalRef.current = setInterval(() => {
-      si = (si + 1) % DEPLOY_STATES.length;
-      setDeployStateIdx(si);
-    }, 2000);
-
-    let li = 0;
-    logIntervalRef.current = setInterval(() => {
-      if (li < LOG_LINES.length) {
-        setLogLines((prev) => [...prev, LOG_LINES[li]]);
-        li++;
-      } else {
-        if (logIntervalRef.current) clearInterval(logIntervalRef.current);
-      }
-    }, 900);
-  };
-
-  const stopAnimations = () => {
-    if (deployIntervalRef.current) clearInterval(deployIntervalRef.current);
-    if (logIntervalRef.current) clearInterval(logIntervalRef.current);
-  };
+  const set = (key: string) =>
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      setValues((v) => ({ ...v, [key]: e.target.value }));
 
   const deploy = async () => {
     if (!values.name.trim() || !values.wallet.trim()) {
-      setError("TOKEN_NAME and CREATOR_WALLET are required fields.");
+      setError("TOKEN_NAME and CREATOR_WALLET are required.");
       return;
     }
-
     setLoading(true);
     setResult(null);
     setError(null);
-    startLoadingAnimations();
+    setCycleIdx(0);
+
+    cycleRef.current = setInterval(() => {
+      setCycleIdx((i) => (i + 1) % DEPLOY_CYCLE.length);
+    }, 2000);
 
     try {
       const res = await fetch(`${API}/launch`, {
@@ -105,7 +55,6 @@ export default function LaunchPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
-
       if (!res.ok) throw new Error(`${res.status}`);
       const data = await res.json();
       setResult(data);
@@ -113,7 +62,7 @@ export default function LaunchPage() {
     } catch {
       setError("Connection failed. Check network or try again.");
     } finally {
-      stopAnimations();
+      if (cycleRef.current) clearInterval(cycleRef.current);
       setLoading(false);
     }
   };
@@ -125,231 +74,170 @@ export default function LaunchPage() {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  const truncate = (addr: string) =>
-    addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : "";
-
   const canDeploy = values.name.trim() && values.wallet.trim() && !loading;
 
   return (
-    <div className="min-h-screen bg-black font-mono">
-      <Nav />
+    <main className="page-wrapper min-h-screen pt-16 pb-12 px-4 sm:px-8">
 
-      <div className="pt-16 pb-8 px-4 max-w-6xl mx-auto">
-
-        {/* PAGE HEADER */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-          <div>
-            <h1
-              className="text-lg sm:text-xl tracking-widest"
-              style={{ color: "var(--green)", textShadow: "0 0 10px var(--green)" }}
-            >
-              ◈ LAUNCH TERMINAL
-            </h1>
-            <p className="text-xs mt-1" style={{ color: "rgba(0,255,156,0.45)" }}>
-              Deploy tokens on Base via Bankr Partner API
-            </p>
-          </div>
-          <div className="badge-green">
-            <span
-              className="w-1.5 h-1.5 rounded-full animate-pulse"
-              style={{ background: "var(--green)" }}
-            />
-            BANKR API: CONNECTED
-          </div>
+      {/* Page header */}
+      <div className="flex items-center justify-between mb-6 max-w-6xl mx-auto">
+        <div>
+          <p className="text-xs muted tracking-widest mb-1">BANKRSYNTH://</p>
+          <h1 className="text-xl tracking-widest glow-text-soft">LAUNCH TERMINAL</h1>
         </div>
+        <div className="flex items-center gap-2 panel px-3 py-2">
+          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
+          <span className="text-xs muted tracking-widest">BANKR API READY</span>
+        </div>
+      </div>
 
-        {/* TWO COLUMNS */}
-        <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
+      {/* Two-column layout */}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-4">
 
-          {/* ── LEFT: FORM ── */}
-          <div className="panel p-5 sm:p-6">
-            <p className="section-label">DEPLOYMENT PARAMETERS</p>
-
-            <div className="space-y-5">
+        {/* LEFT — form (3 cols) */}
+        <div className="lg:col-span-3 panel">
+          <div className="panel-header">
+            <span className="panel-dot" />
+            <span className="panel-dot-dim" />
+            <span className="panel-dot-dim" />
+            <span className="ml-2">DEPLOYMENT PARAMETERS</span>
+          </div>
+          <div className="p-6">
+            <div className="space-y-0">
               {FIELDS.map((f) => (
-                <div key={f.key}>
-                  <div
-                    className="text-xs mb-1 flex items-center gap-1"
-                    style={{ color: "rgba(0,255,156,0.55)" }}
-                  >
-                    <span>&gt; {f.label}:</span>
-                    {f.required && (
-                      <span style={{ color: "var(--green)" }}>*</span>
-                    )}
-                  </div>
+                <div key={f.key} className="input-group">
+                  <label className="input-label">
+                    {f.label}{f.required && <span className="text-green-400 ml-1">*</span>}
+                  </label>
                   <input
                     className="terminal-input"
+                    placeholder={f.ph}
                     value={values[f.key]}
                     onChange={set(f.key)}
-                    placeholder={f.placeholder}
                     disabled={loading}
                   />
                 </div>
               ))}
             </div>
 
-            {/* DEPLOY BUTTON */}
-            <button
-              onClick={deploy}
-              disabled={!canDeploy}
-              className="terminal-btn mt-6"
-              style={{ height: 56, fontSize: "0.85rem", letterSpacing: "0.2em" }}
-            >
-              {loading ? DEPLOY_STATES[deployStateIdx] : "EXECUTE DEPLOY"}
-            </button>
+            <div className="pt-6">
+              <button
+                onClick={deploy}
+                disabled={!canDeploy}
+                className="btn-primary"
+              >
+                {loading ? DEPLOY_CYCLE[cycleIdx] : "◈ EXECUTE DEPLOY"}
+              </button>
+            </div>
 
-            {/* GUIDE */}
-            <div
-              className="mt-6 pt-4 text-xs space-y-1"
-              style={{
-                borderTop: "1px solid rgba(0,255,156,0.1)",
-                color: "rgba(0,255,156,0.4)",
-              }}
-            >
-              <p>&gt; Fields marked [*] are required</p>
-              <p>&gt; SYMBOL auto-generated from name if empty</p>
-              <p>&gt; IMAGE_URL must be a public https:// URL</p>
-              <p>
+            <div className="mt-4 pt-4 border-t border-green-400/10 space-y-1">
+              <p className="text-xs muted">&gt; Fields marked * are required</p>
+              <p className="text-xs muted">&gt; SYMBOL auto-generated from name if empty</p>
+              <p className="text-xs muted">
                 &gt; Upload images at{" "}
-                <a
-                  href="https://imgbb.com/"
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ color: "rgba(0,255,156,0.6)", textDecoration: "underline" }}
-                >
+                <a href="https://imgbb.com/" target="_blank" rel="noreferrer"
+                   className="text-green-400/70 hover:text-green-400 underline transition-colors">
                   imgbb.com
                 </a>
               </p>
             </div>
           </div>
+        </div>
 
-          {/* ── RIGHT: EXECUTION LOG ── */}
-          <div className="panel p-5 sm:p-6 flex flex-col">
-            <p className="section-label">EXECUTION LOG</p>
+        {/* RIGHT — execution log (2 cols) */}
+        <div className="lg:col-span-2 panel min-h-[400px] flex flex-col">
+          <div className="panel-header">
+            <span className="panel-dot" />
+            <span className="panel-dot-dim" />
+            <span className="panel-dot-dim" />
+            <span className="ml-2">EXECUTION LOG</span>
+          </div>
+          <div className="p-4 flex-1 font-mono text-xs space-y-2">
 
-            <div className="flex-1 text-sm space-y-1" style={{ minHeight: 240 }}>
+            {/* Idle */}
+            {!loading && !result && !error && (
+              <>
+                <p className="muted">&gt; awaiting parameters...</p>
+                <p className="muted">&gt; fill form to deploy</p>
+                <p className="text-green-400"><span className="cursor-blink">_</span></p>
+              </>
+            )}
 
-              {/* IDLE */}
-              {!loading && !result && !error && (
-                <div style={{ color: "rgba(0,255,156,0.45)" }} className="text-xs space-y-1">
-                  <p className="blink-cursor">&gt; root@bankrsynth:~$</p>
-                  <p>&gt; awaiting deployment parameters...</p>
-                  <p>&gt; enter token details to begin execution</p>
-                </div>
-              )}
-
-              {/* LOADING */}
-              {loading && (
-                <>
-                  {logLines.map((line, i) => (
-                    <p
-                      key={i}
-                      className="animate-slide-in text-xs"
-                      style={{ color: "rgba(0,255,156,0.7)" }}
-                    >
-                      {line}
-                    </p>
-                  ))}
-                  <span
-                    className="inline-block text-xs"
-                    style={{ animation: "blink 1s step-end infinite", color: "var(--green)" }}
-                  >
-                    █
-                  </span>
-                </>
-              )}
-
-              {/* ERROR */}
-              {error && !loading && (
-                <div className="space-y-1 text-xs">
-                  <p style={{ color: "var(--red)" }}>✖ STATUS: FAILED</p>
-                  <p style={{ color: "rgba(255,51,102,0.7)" }}>&gt; {error}</p>
-                  <p style={{ color: "rgba(0,255,156,0.4)" }}>&gt; retry or check parameters</p>
-                </div>
-              )}
-
-              {/* SUCCESS */}
-              {result?.success && !loading && (
-                <div className="text-xs space-y-2">
-                  <p
-                    className="text-sm tracking-widest"
-                    style={{ color: "var(--green)", textShadow: "0 0 10px var(--green)" }}
-                  >
-                    ✔ STATUS: SUCCESS
+            {/* Loading */}
+            {loading && (
+              <div className="space-y-2">
+                {["connecting to bankr api",
+                  "generating deployment wallet",
+                  "broadcasting transaction",
+                  "waiting for confirmation",
+                ].map((s, i) => (
+                  <p key={i} className="muted fade-in"
+                     style={{ animationDelay: `${i * 0.8}s` }}>
+                    &gt; {s}...
                   </p>
-                  <div
-                    className="my-2"
-                    style={{ borderTop: "1px solid rgba(0,255,156,0.2)" }}
-                  />
+                ))}
+                <span className="text-green-400 cursor-blink">_</span>
+              </div>
+            )}
 
-                  <div className="space-y-1" style={{ color: "rgba(0,255,156,0.8)" }}>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span style={{ color: "rgba(0,255,156,0.5)" }}>CONTRACT:</span>
-                      <span
-                        className="cursor-pointer hover:underline"
-                        onClick={copyCA}
-                        title="Click to copy"
-                        style={{ color: "var(--green)" }}
-                      >
-                        {truncate(result.tokenAddress)}
-                      </span>
-                      <button
-                        onClick={copyCA}
-                        className="terminal-btn-sm"
-                        style={{ padding: "2px 8px", fontSize: "0.6rem" }}
-                      >
-                        {copied ? "COPIED!" : "COPY"}
-                      </button>
-                    </div>
-                    <p>
-                      <span style={{ color: "rgba(0,255,156,0.5)" }}>NETWORK: </span>
-                      Base Mainnet
-                    </p>
-                    {result.blockNumber && (
-                      <p>
-                        <span style={{ color: "rgba(0,255,156,0.5)" }}>BLOCK:   </span>
-                        #{result.blockNumber.toLocaleString()}
-                      </p>
-                    )}
-                  </div>
+            {/* Error */}
+            {error && !loading && (
+              <div className="space-y-2">
+                <p className="text-error">✖ DEPLOY FAILED</p>
+                <p className="muted">&gt; {error}</p>
+                <p className="muted">&gt; check parameters and retry</p>
+              </div>
+            )}
 
-                  <div
-                    className="my-2"
-                    style={{ borderTop: "1px solid rgba(0,255,156,0.2)" }}
-                  />
+            {/* Success */}
+            {result?.success && !loading && (
+              <div className="space-y-3">
+                <p className="text-success">✔ DEPLOY SUCCESS</p>
 
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {[
-                      {
-                        label: "BASESCAN",
-                        href: `https://basescan.org/token/${result.tokenAddress}`,
-                      },
-                      {
-                        label: "GECKO",
-                        href: `https://www.geckoterminal.com/base/pools/${result.poolId}`,
-                      },
-                      {
-                        label: "TRADE",
-                        href: `https://swap.bankr.bot/?outputToken=${result.tokenAddress}`,
-                      },
-                    ].map((link) => (
-                      <a
-                        key={link.label}
-                        href={link.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="terminal-btn-sm no-underline"
-                      >
-                        {link.label}
-                      </a>
-                    ))}
-                  </div>
+                <div className="border border-green-400/20 p-3 space-y-2">
+                  <p className="muted">CONTRACT ADDRESS</p>
+                  <p className="text-green-400 break-all leading-relaxed">
+                    {result.tokenAddress}
+                  </p>
+                  <button
+                    onClick={copyCA}
+                    className="btn-primary py-1.5 text-xs mt-1"
+                    style={{ width: "auto", padding: "6px 16px" }}
+                  >
+                    {copied ? "COPIED!" : "COPY CA"}
+                  </button>
                 </div>
-              )}
-            </div>
+
+                {result.blockNumber && (
+                  <p className="muted">&gt; BLOCK #{result.blockNumber.toLocaleString()}</p>
+                )}
+
+                <div className="space-y-2 pt-1">
+                  <a href={`https://basescan.org/token/${result.tokenAddress}`}
+                     target="_blank" rel="noreferrer"
+                     className="block text-xs muted hover:text-green-400 transition-colors">
+                    → VIEW ON BASESCAN
+                  </a>
+                  <a href={`https://www.geckoterminal.com/base/pools/${result.poolId}`}
+                     target="_blank" rel="noreferrer"
+                     className="block text-xs muted hover:text-green-400 transition-colors">
+                    → VIEW ON GECKOTERMINAL
+                  </a>
+                  <a href={`https://swap.bankr.bot/?outputToken=${result.tokenAddress}`}
+                     target="_blank" rel="noreferrer"
+                     className="block text-xs muted hover:text-green-400 transition-colors">
+                    → TRADE ON BANKR SWAP
+                  </a>
+                </div>
+
+                <p className="muted">&gt; END OF TRANSMISSION</p>
+              </div>
+            )}
+
           </div>
         </div>
+
       </div>
-    </div>
+    </main>
   );
 }

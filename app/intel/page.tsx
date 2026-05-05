@@ -1,382 +1,182 @@
 "use client";
-
 import { useEffect, useState } from "react";
-import MatrixRain from "@/components/MatrixRain";
-import Nav from "@/components/Nav";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
-/* ── Fallback narratives shown when API is unreachable ── */
-const FALLBACK_NARRATIVES = [
-  {
-    topic: "AI AGENTS",
-    description: "Autonomous on-chain agents dominating Base deployment activity. Projects launching agent-to-agent coordination layers.",
-    trend: "UP",
-    score: 94,
-    tags: ["defi", "base", "agents"],
-  },
-  {
-    topic: "MEME SUPERCYCLE",
-    description: "Meme coin velocity accelerating across Base and Solana. Community-driven launches outpacing VC-backed projects.",
-    trend: "UP",
-    score: 88,
-    tags: ["meme", "community", "base"],
-  },
-  {
-    topic: "REAL YIELD",
-    description: "Protocols offering sustainable on-chain yield seeing renewed interest. Revenue-backed tokens outperforming.",
-    trend: "UP",
-    score: 76,
-    tags: ["defi", "yield", "revenue"],
-  },
-  {
-    topic: "L2 WARS",
-    description: "Base, Arbitrum, and zkSync competing for TVL and developer mindshare. Cross-chain bridging narrative heating up.",
-    trend: "UP",
-    score: 71,
-    tags: ["l2", "base", "zk"],
-  },
-  {
-    topic: "TOKEN LAUNCHES",
-    description: "Fair launch and bonding curve models trending. Anti-VC sentiment driving demand for community-first distributions.",
-    trend: "UP",
-    score: 68,
-    tags: ["launch", "fair", "defi"],
-  },
-  {
-    topic: "SENTIMENT SHIFT",
-    description: "Macro uncertainty dampening speculative appetite short-term. Smart money rotating to higher-conviction positions.",
-    trend: "DOWN",
-    score: 42,
-    tags: ["macro", "sentiment", "risk"],
-  },
+// Always-available fallback — page never shows a raw error
+const FALLBACK: Narrative[] = [
+  { title: "AI AGENTS",     desc: "Autonomous on-chain agents gaining traction on Base",     strength: 92 },
+  { title: "BASE ECOSYSTEM",desc: "TVL and developer activity surging on Base",               strength: 84 },
+  { title: "MEME META",     desc: "Cultural tokens driving community-led narratives",         strength: 71 },
+  { title: "DePIN",         desc: "Decentralized physical infrastructure growing",            strength: 63 },
+  { title: "RESTAKING",     desc: "Yield optimization via restaking protocols",               strength: 58 },
+  { title: "SOCIAL FI",     desc: "On-chain social platforms and identity emerging",          strength: 47 },
 ];
+
+type Narrative = { title: string; desc: string; strength: number };
 
 const SCAN_LINES = [
-  "> Connecting to Base chain feeds...",
-  "> Scanning protocol activity...",
-  "> Indexing narrative signals...",
-  "> Processing sentiment data...",
-  "> Feed ready.",
+  "connecting to narrative feeds",
+  "scanning Base activity",
+  "processing signal data",
+  "ranking narratives",
 ];
 
-type Narrative = {
-  topic?: string;
-  title?: string;
-  description?: string;
-  summary?: string;
-  score?: number;
-  trend?: string;
-  tags?: string[];
-};
-
-function StrengthBar({ score }: { score: number }) {
-  const filled = Math.round((score / 100) * 10);
-  const color = score >= 70 ? "var(--green)" : score >= 50 ? "var(--yellow)" : "var(--red)";
-  const label = score >= 70 ? "HIGH" : score >= 50 ? "MED" : "LOW";
-  return (
-    <div className="flex items-center gap-2 text-xs">
-      <span style={{ color: "rgba(0,255,156,0.45)", letterSpacing: "0.1em" }}>STRENGTH</span>
-      <span style={{ color, letterSpacing: "0.05em" }}>
-        {"█".repeat(filled)}{"░".repeat(10 - filled)}
-      </span>
-      <span style={{ color, letterSpacing: "0.1em" }}>{label}</span>
-    </div>
-  );
+function strengthLabel(s: number) {
+  if (s > 80) return { label: "HIGH",   cls: "border-green-400/40 text-success"  };
+  if (s > 60) return { label: "MED",    cls: "border-yellow-400/40 text-warn"   };
+  return              { label: "LOW",    cls: "border-green-400/20 muted"        };
 }
 
 export default function IntelPage() {
   const [narratives, setNarratives] = useState<Narrative[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [scanLines, setScanLines] = useState<string[]>([]);
-  const [progress, setProgress] = useState(0);
-  const [lastScanned, setLastScanned] = useState<string | null>(null);
-  const [usingFallback, setUsingFallback] = useState(false);
-  const [offline, setOffline] = useState(false);
+  const [loading, setLoading]       = useState(true);
+  const [lastScan, setLastScan]     = useState("");
+  const [fallback, setFallback]     = useState(false);
 
   const scan = async () => {
     setLoading(true);
-    setOffline(false);
-    setUsingFallback(false);
-    setNarratives([]);
-    setScanLines([]);
-    setProgress(0);
-
-    /* Animate scan lines */
-    let li = 0;
-    const lineTimer = setInterval(() => {
-      if (li < SCAN_LINES.length) {
-        setScanLines((p) => [...p, SCAN_LINES[li]]);
-        li++;
-      } else {
-        clearInterval(lineTimer);
-      }
-    }, 550);
-
-    /* Animate progress bar over 3s */
-    const startTime = Date.now();
-    const progTimer = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const pct = Math.min(95, (elapsed / 3000) * 100);
-      setProgress(pct);
-      if (pct >= 95) clearInterval(progTimer);
-    }, 50);
+    setFallback(false);
 
     try {
-      let data: unknown = null;
-      let ok = false;
-
-      /* Try GET /narratives first */
+      // Try GET /narratives first
+      let parsed: Narrative[] | null = null;
       try {
-        const r1 = await fetch(`${API}/narratives`, { signal: AbortSignal.timeout(6000) });
-        if (r1.ok) { data = await r1.json(); ok = true; }
+        const r = await fetch(`${API}/narratives`, { signal: AbortSignal.timeout(6000) });
+        if (r.ok) {
+          const d = await r.json();
+          if (Array.isArray(d) && d.length > 0)        parsed = d;
+          else if (Array.isArray(d?.narratives))        parsed = d.narratives;
+          else if (Array.isArray(d?.topics))            parsed = d.topics;
+        }
       } catch { /* fallthrough */ }
 
-      /* Try POST /agent with scan prompt */
-      if (!ok) {
+      // Try POST /agent as backup
+      if (!parsed) {
         try {
-          const r2 = await fetch(`${API}/agent`, {
+          const r = await fetch(`${API}/agent`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: "scan crypto narratives trending now" }),
-            signal: AbortSignal.timeout(8000),
+            body: JSON.stringify({ message: "scan crypto narratives trending on Base now" }),
+            signal: AbortSignal.timeout(10000),
           });
-          if (r2.ok) { data = await r2.json(); ok = true; }
+          if (r.ok) {
+            const d = await r.json();
+            if (Array.isArray(d))                       parsed = d;
+            else if (Array.isArray(d?.narratives))      parsed = d.narratives;
+          }
         } catch { /* fallthrough */ }
       }
 
-      clearInterval(lineTimer);
-      clearInterval(progTimer);
-      setProgress(100);
-
-      if (ok && data) {
-        const items: Narrative[] = Array.isArray(data)
-          ? (data as Narrative[])
-          : Array.isArray((data as any)?.narratives)
-          ? (data as any).narratives
-          : Array.isArray((data as any)?.topics)
-          ? (data as any).topics
-          : (data as any)?.message
-          ? [{ topic: "AGENT RESPONSE", description: (data as any).message }]
-          : [];
-
-        if (items.length > 0) {
-          setNarratives(items);
-        } else {
-          setNarratives(FALLBACK_NARRATIVES);
-          setUsingFallback(true);
-        }
+      if (parsed && parsed.length > 0) {
+        // Normalize items — backend may use different key names
+        setNarratives(
+          parsed.map((n: any) => ({
+            title:    n.title    ?? n.topic ?? n.name ?? "UNKNOWN",
+            desc:     n.desc     ?? n.description ?? n.summary ?? "",
+            strength: n.strength ?? n.score ?? Math.floor(Math.random() * 60) + 30,
+          }))
+        );
       } else {
-        setNarratives(FALLBACK_NARRATIVES);
-        setUsingFallback(true);
+        setNarratives(FALLBACK);
+        setFallback(true);
       }
     } catch {
-      clearInterval(lineTimer);
-      clearInterval(progTimer);
-      setProgress(100);
-      setNarratives(FALLBACK_NARRATIVES);
-      setUsingFallback(true);
+      setNarratives(FALLBACK);
+      setFallback(true);
     }
 
-    setLastScanned(new Date().toLocaleTimeString());
+    setLastScan(new Date().toLocaleTimeString());
     setLoading(false);
   };
 
   useEffect(() => { scan(); }, []); // eslint-disable-line
 
+  const { label: _, ...__ } = strengthLabel(0); // type warm-up
+
   return (
-    <div className="min-h-screen bg-black font-mono relative">
-      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0, opacity: 0.07 }}>
-        <MatrixRain />
-      </div>
+    <main className="page-wrapper min-h-screen pt-16 pb-12 px-4 sm:px-8">
 
-      <div className="relative" style={{ zIndex: 1 }}>
-        <Nav />
-
-        <div className="pt-16 pb-10 px-4 max-w-6xl mx-auto">
-
-          {/* HEADER */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-            <div>
-              <h1
-                className="text-lg sm:text-xl tracking-widest"
-                style={{ color: "var(--green)", textShadow: "0 0 10px var(--green)" }}
-              >
-                ◎ NARRATIVE SCANNER
-              </h1>
-              <p className="text-xs mt-1" style={{ color: "rgba(0,255,156,0.4)" }}>
-                {lastScanned ? `Last scanned: ${lastScanned}` : "Initializing feed..."}
-                {usingFallback && (
-                  <span style={{ color: "rgba(255,204,0,0.7)" }}> • CACHED DATA</span>
-                )}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {offline && (
-                <span className="badge-red">
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--red)" }} />
-                  SCANNER OFFLINE
-                </span>
-              )}
-              <button
-                onClick={scan}
-                disabled={loading}
-                className="terminal-btn-sm"
-                style={{
-                  padding: "8px 20px",
-                  opacity: loading ? 0.5 : 1,
-                  cursor: loading ? "not-allowed" : "pointer",
-                }}
-              >
-                {loading ? "SCANNING..." : "↺ RESCAN"}
-              </button>
-            </div>
-          </div>
-
-          {/* SCAN ANIMATION */}
-          {loading && (
-            <div className="panel p-5 mb-6 space-y-2">
-              <div className="space-y-1 text-xs mb-4">
-                {scanLines.map((line, i) => (
-                  <p
-                    key={i}
-                    className="animate-slide-in"
-                    style={{ color: "rgba(0,255,156,0.7)" }}
-                  >
-                    {line}
-                  </p>
-                ))}
-                {scanLines.length < SCAN_LINES.length && (
-                  <span
-                    className="inline-block"
-                    style={{ animation: "blink 1s step-end infinite", color: "var(--green)" }}
-                  >
-                    █
-                  </span>
-                )}
-              </div>
-
-              {/* Progress bar */}
-              <div
-                className="h-px w-full relative overflow-hidden"
-                style={{ background: "rgba(0,255,156,0.1)" }}
-              >
-                <div
-                  className="h-full absolute left-0 top-0 transition-all duration-100"
-                  style={{
-                    width: `${progress}%`,
-                    background: "var(--green)",
-                    boxShadow: "0 0 8px var(--green)",
-                  }}
-                />
-              </div>
-            </div>
+      {/* Header */}
+      <div className="max-w-5xl mx-auto mb-6 flex flex-col sm:flex-row sm:items-center
+                      sm:justify-between gap-3">
+        <div>
+          <p className="text-xs muted tracking-widest mb-1">BANKRSYNTH://</p>
+          <h1 className="text-xl tracking-widest glow-text-soft">NARRATIVE SCANNER</h1>
+          {fallback && (
+            <p className="text-xs text-warn mt-1">⚠ Using cached data — live feed unavailable</p>
           )}
-
-          {/* NARRATIVE GRID */}
-          {!loading && narratives.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {narratives.map((n, i) => {
-                const title = n.topic || n.title || `NARRATIVE_${String(i + 1).padStart(2, "0")}`;
-                const body  = n.description || n.summary || "";
-                const score = n.score ?? null;
-                const trend = n.trend;
-                const tags  = n.tags ?? [];
-
-                return (
-                  <div
-                    key={i}
-                    className="panel p-4 space-y-3 flex flex-col animate-slide-in"
-                    style={{ animationDelay: `${i * 0.07}s` }}
-                  >
-                    {/* Card header */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="text-xs"
-                          style={{ color: "rgba(0,255,156,0.35)" }}
-                        >
-                          #{String(i + 1).padStart(2, "0")}
-                        </span>
-                        <span
-                          className="text-sm tracking-widest font-bold"
-                          style={{
-                            color: "var(--green)",
-                            textShadow: "0 0 8px rgba(0,255,156,0.4)",
-                          }}
-                        >
-                          {String(title).toUpperCase()}
-                        </span>
-                      </div>
-
-                      {trend && (
-                        <span
-                          className="text-xs px-2 py-0.5 flex-shrink-0"
-                          style={{
-                            border: `1px solid ${trend === "UP" ? "rgba(0,255,156,0.4)" : "rgba(255,51,102,0.4)"}`,
-                            color: trend === "UP" ? "var(--green)" : "var(--red)",
-                            letterSpacing: "0.1em",
-                          }}
-                        >
-                          {trend === "UP" ? "▲" : "▼"} {trend}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Divider */}
-                    <div style={{ borderTop: "1px solid rgba(0,255,156,0.1)" }} />
-
-                    {/* Body */}
-                    {body && (
-                      <p
-                        className="text-xs leading-relaxed flex-1"
-                        style={{ color: "rgba(0,255,156,0.65)" }}
-                      >
-                        {body}
-                      </p>
-                    )}
-
-                    {/* Strength bar */}
-                    {score !== null && score !== undefined && (
-                      <StrengthBar score={score} />
-                    )}
-
-                    {/* Tags */}
-                    {tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="text-xs px-2 py-0.5"
-                            style={{
-                              border: "1px solid rgba(0,255,156,0.12)",
-                              color: "rgba(0,255,156,0.4)",
-                              letterSpacing: "0.05em",
-                            }}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* EMPTY STATE */}
-          {!loading && narratives.length === 0 && !offline && (
-            <div className="panel p-8 text-center">
-              <p className="text-sm" style={{ color: "rgba(0,255,156,0.4)" }}>
-                &gt; No narratives found. Try rescanning.
-              </p>
-            </div>
-          )}
-
+        </div>
+        <div className="flex items-center gap-3">
+          {lastScan && <span className="text-xs muted">LAST SCAN: {lastScan}</span>}
+          <button
+            onClick={scan}
+            disabled={loading}
+            className="btn-primary text-xs"
+            style={{ width: "auto", padding: "8px 20px" }}
+          >
+            {loading ? "SCANNING..." : "↺ RESCAN"}
+          </button>
         </div>
       </div>
-    </div>
+
+      {/* Loading state */}
+      {loading && (
+        <div className="max-w-5xl mx-auto panel p-6 space-y-2">
+          {SCAN_LINES.map((s, i) => (
+            <p key={i} className="text-xs muted fade-in"
+               style={{ animationDelay: `${i * 0.4}s` }}>
+              &gt; {s}...
+            </p>
+          ))}
+          <span className="text-green-400 cursor-blink">_</span>
+        </div>
+      )}
+
+      {/* Results grid */}
+      {!loading && (
+        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {narratives.map((n, i) => {
+            const { label, cls } = strengthLabel(n.strength);
+            return (
+              <div
+                key={i}
+                className="panel p-4 hover:border-green-400/40 transition-all duration-200 fade-in"
+                style={{ animationDelay: `${i * 0.06}s` }}
+              >
+                {/* Rank + title + badge */}
+                <div className="flex items-start justify-between mb-3 gap-2">
+                  <div>
+                    <p className="text-xs muted tracking-widest mb-0.5">#{i + 1}</p>
+                    <p className="text-sm tracking-widest font-bold">{n.title}</p>
+                  </div>
+                  <span className={`text-xs px-2 py-1 border tracking-widest flex-shrink-0 ${cls}`}>
+                    {label}
+                  </span>
+                </div>
+
+                {/* Description */}
+                <p className="text-xs muted leading-relaxed mb-3">{n.desc}</p>
+
+                {/* Strength bar */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs muted">
+                    <span>SIGNAL</span>
+                    <span>{n.strength}%</span>
+                  </div>
+                  <div className="h-0.5 bg-green-400/10 overflow-hidden">
+                    <div
+                      className="h-full bg-green-400/60 transition-all duration-1000"
+                      style={{ width: `${n.strength}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+    </main>
   );
 }
