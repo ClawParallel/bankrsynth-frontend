@@ -2,77 +2,303 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== MATRIX BASE ===== */
+/* ============================================================
+   BANKRSYNTH DESIGN SYSTEM
+   ============================================================ */
 
-body {
-  background: #000;
-  color: #00ff9c;
-  font-family: "Courier New", monospace;
-  overflow-x: hidden;
+:root {
+  --green:        #00ff9c;
+  --green-dim:    rgba(0, 255, 156, 0.04);
+  --green-border: rgba(0, 255, 156, 0.3);
+  --green-bright: #00ffcc;
+  --red:          #ff3366;
+  --yellow:       #ffcc00;
+  --bg:           #000000;
+  --bg-panel:     #040a04;
 }
 
-/* ===== TERMINAL INPUT ===== */
+/* ============================================================
+   BASE
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--green);
+  font-family: "Courier New", Courier, monospace;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--green);
+  color: #000;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #000;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--green-border);
+  border-radius: 2px;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 156, 0.3); }
+  50%       { box-shadow: 0 0 50px rgba(0, 255, 156, 0.7), 0 0 80px rgba(0, 255, 156, 0.3); }
+}
+
+@keyframes flicker {
+  0%, 89%, 91%, 93%, 95%, 100% { opacity: 1; }
+  90%, 92%, 94%                { opacity: 0.6; }
+}
+
+@keyframes scan-sweep {
+  0%   { top: -10%; }
+  100% { top: 110%; }
+}
+
+@keyframes slide-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { left: -100%; }
+  100% { left: 200%; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes progress-fill {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+.glow-text {
+  text-shadow: 0 0 10px currentColor, 0 0 20px rgba(0, 255, 156, 0.4);
+}
+
+.glow-text-strong {
+  text-shadow:
+    0 0 8px var(--green),
+    0 0 20px var(--green),
+    0 0 40px rgba(0, 255, 156, 0.5);
+}
+
+.flicker {
+  animation: flicker 6s infinite;
+}
+
+.blink-cursor::after {
+  content: '█';
+  animation: blink 1s step-end infinite;
+  margin-left: 2px;
+}
+
+.animate-slide-in {
+  animation: slide-in-up 0.25s ease forwards;
+}
+
+/* ============================================================
+   PANELS / GLASSMORPHISM
+   ============================================================ */
+
+.panel {
+  background: var(--green-dim);
+  border: 1px solid var(--green-border);
+  box-shadow:
+    0 0 30px rgba(0, 255, 156, 0.08),
+    inset 0 0 30px rgba(0, 255, 156, 0.02);
+  backdrop-filter: blur(4px);
+}
+
+.panel-glow {
+  background: var(--green-dim);
+  border: 1px solid var(--green-border);
+  box-shadow:
+    0 0 40px rgba(0, 255, 156, 0.15),
+    inset 0 0 30px rgba(0, 255, 156, 0.03);
+  backdrop-filter: blur(4px);
+}
+
+/* terminal-panel kept for backwards compat */
+.terminal-panel {
+  border: 1px solid var(--green-border);
+  padding: 20px;
+  background: var(--green-dim);
+  box-shadow:
+    0 0 40px rgba(0, 255, 156, 0.1),
+    inset 0 0 25px rgba(0, 255, 156, 0.02);
+}
+
+/* ============================================================
+   INPUTS
+   ============================================================ */
 
 .terminal-input {
   width: 100%;
-  background: #000;
-  border: 1px solid #00ff9c;
-  padding: 12px;
-  margin-top: 12px;
-  color: #00ff9c;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--green-border);
+  padding: 10px 0;
+  color: var(--green);
+  font-family: inherit;
+  font-size: 0.875rem;
   outline: none;
-
-  box-shadow: 0 0 8px #00ff9c33 inset;
-  transition: 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .terminal-input:focus {
-  box-shadow:
-    0 0 12px #00ff9c,
-    inset 0 0 8px #00ff9c;
+  border-color: var(--green);
+  box-shadow: 0 2px 0 0 rgba(0, 255, 156, 0.4);
 }
 
-/* Placeholder style */
 .terminal-input::placeholder {
-  color: #00ff9c66;
+  color: rgba(0, 255, 156, 0.35);
 }
 
-/* ===== TERMINAL BUTTON ===== */
+/* legacy bordered input */
+.terminal-input-box {
+  width: 100%;
+  background: #000;
+  border: 1px solid var(--green-border);
+  padding: 12px;
+  color: var(--green);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.terminal-input-box:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 12px rgba(0, 255, 156, 0.3);
+}
+
+.terminal-input-box::placeholder {
+  color: rgba(0, 255, 156, 0.35);
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
 
 .terminal-btn {
+  position: relative;
+  overflow: hidden;
   width: 100%;
-  border: 1px solid #00ff9c;
+  border: 1px solid var(--green);
   padding: 14px;
   margin-top: 14px;
-  transition: 0.2s;
+  color: var(--green);
+  font-family: inherit;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 15px rgba(0, 255, 156, 0.2);
+}
 
-  box-shadow: 0 0 15px #00ff9c55;
+.terminal-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 156, 0.25), transparent);
+  transition: left 0.4s ease;
+  pointer-events: none;
+}
+
+.terminal-btn:hover::after {
+  left: 200%;
 }
 
 .terminal-btn:hover {
-  background: #00ff9c;
-  color: black;
-  box-shadow: 0 0 25px #00ff9c;
+  background: rgba(0, 255, 156, 0.08);
+  box-shadow: 0 0 30px rgba(0, 255, 156, 0.4);
+  color: #fff;
 }
 
-/* ===== TERMINAL PANEL ===== */
-
-.terminal-panel {
-  border: 1px solid #00ff9c;
-  padding: 20px;
-  background: #000;
-  box-shadow:
-    0 0 40px #00ff9c33,
-    inset 0 0 25px #00ff9c22;
+.terminal-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-/* ===== MATRIX GLOW TEXT ===== */
-
-.glow-text {
-  text-shadow: 0 0 8px #00ff9c, 0 0 18px #00ff9c;
+.terminal-btn:disabled::after {
+  display: none;
 }
 
-/* ===== SCANLINE EFFECT ===== */
+/* filled variant */
+.terminal-btn-solid {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--green);
+  padding: 12px 24px;
+  color: #000;
+  background: var(--green);
+  font-family: inherit;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+  box-shadow: 0 0 20px rgba(0, 255, 156, 0.5);
+}
+
+.terminal-btn-solid:hover {
+  box-shadow: 0 0 40px rgba(0, 255, 156, 0.8);
+}
+
+/* small tab-style button */
+.terminal-btn-sm {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--green-border);
+  padding: 6px 14px;
+  color: var(--green);
+  font-family: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.terminal-btn-sm:hover {
+  border-color: var(--green);
+  box-shadow: 0 0 12px rgba(0, 255, 156, 0.3);
+}
+
+/* ============================================================
+   SCANLINES
+   ============================================================ */
 
 .scanlines::before {
   content: "";
@@ -80,9 +306,110 @@ body {
   inset: 0;
   background: repeating-linear-gradient(
     to bottom,
-    transparent,
+    transparent 0px,
     transparent 2px,
-    rgba(0, 255, 156, 0.05) 3px
+    rgba(0, 255, 156, 0.015) 3px
   );
   pointer-events: none;
+  z-index: 9999;
+}
+
+/* ============================================================
+   STATUS BADGES
+   ============================================================ */
+
+.badge-green {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(0, 255, 156, 0.4);
+  padding: 3px 10px;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--green);
+}
+
+.badge-red {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 51, 102, 0.4);
+  padding: 3px 10px;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--red);
+}
+
+.badge-yellow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 204, 0, 0.4);
+  padding: 3px 10px;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--yellow);
+}
+
+/* ============================================================
+   SECTION LABEL / DIVIDER
+   ============================================================ */
+
+.section-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: rgba(0, 255, 156, 0.5);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid rgba(0, 255, 156, 0.15);
+  margin: 16px 0;
+}
+
+/* ============================================================
+   MODULE CARDS (home page)
+   ============================================================ */
+
+.module-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--green-dim);
+  border: 1px solid var(--green-border);
+  padding: 24px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  box-shadow: 0 0 20px rgba(0, 255, 156, 0.05);
+}
+
+.module-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  border-color: var(--green);
+  box-shadow:
+    0 0 40px rgba(0, 255, 156, 0.2),
+    inset 0 0 20px rgba(0, 255, 156, 0.04);
+}
+
+.module-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--green);
+  opacity: 0;
+  box-shadow: 0 0 10px var(--green);
+  transition: opacity 0.2s;
+}
+
+.module-card:hover::after {
+  opacity: 1;
+}
+
+/* progress bar fill animation */
+.progress-fill {
+  animation: progress-fill 3s ease-in-out forwards;
 }
