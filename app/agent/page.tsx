@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import MatrixRain from "@/components/MatrixRain";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
@@ -26,7 +25,6 @@ export default function AgentPage() {
   const [copied, setCopied] = useState<string | null>(null);
 
   const endRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -56,13 +54,13 @@ export default function AgentPage() {
         if (agentText) setMessages((p) => [...p, { type: "agent", text: agentText }]);
         if (ca)         setMessages((p) => [...p, { type: "deploy", ca, name: data?.deployResult?.name }]);
         if (!agentText && !ca)
-          setMessages((p) => [...p, { type: "agent", text: "✖ No response from agent. Try again." }]);
+          setMessages((p) => [...p, { type: "agent", text: "x No response from agent. Try again." }]);
       }, 1500);
     } catch {
       setTyping(false);
       setMessages((p) => [
         ...p,
-        { type: "agent", text: "✖ Connection failed. Check network or try again." },
+        { type: "agent", text: "x Connection failed. Check network or try again." },
       ]);
     }
   };
@@ -74,64 +72,49 @@ export default function AgentPage() {
   };
 
   return (
-    <main className="page-wrapper">
-      <MatrixRain />
-
-      <div className="relative z-10 min-h-screen pt-16 pb-0
-                      flex flex-col max-w-3xl mx-auto px-4">
-
-        {/* Page header */}
-        <div className="py-5 text-center flex-shrink-0">
-          <h1 className="text-2xl tracking-widest glow-text-soft">BANKRSYNTH</h1>
-          <p className="text-xs muted tracking-widest mt-1">
-            AUTONOMOUS AGENT — BASE DEPLOYMENT NODE
-          </p>
+    <main className="page-wrapper" style={{ padding: '20px 16px 0' }}>
+      <div className="max-w-4xl mx-auto" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 76px)' }}>
+        <div style={{ marginBottom: '16px' }}>
+          <p className="muted" style={{ fontSize: '10px', letterSpacing: '0.3em' }}>BANKRSYNTH://</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(18px,3vw,26px)', letterSpacing: '0.2em', color: 'var(--green)', textShadow: '0 0 20px rgba(0,255,65,0.4)', marginTop: '4px' }}>
+            ⬡ AGENT // AUTONOMOUS EXECUTION
+          </h1>
         </div>
 
-        {/* Quick commands */}
-        <div className="flex flex-wrap gap-2 mb-3 flex-shrink-0">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
           {QUICK_CMDS.map((cmd) => (
             <button
               key={cmd}
               onClick={() => send(cmd)}
               disabled={typing}
-              className="text-xs px-3 py-1.5 border border-green-400/20
-                         text-green-400/50 hover:text-green-400 hover:border-green-400/50
-                         transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="mode-btn"
+              style={{ fontSize: '10px' }}
             >
               &gt; {cmd}
             </button>
           ))}
         </div>
 
-        {/* Chat panel */}
-        <div className="flex-1 panel flex flex-col min-h-0 mb-0">
-          <div className="panel-header flex-shrink-0">
-            <span className="panel-dot" />
-            <span className="panel-dot-dim" />
-            <span className="panel-dot-dim" />
-            <span className="ml-2">AGENT TERMINAL</span>
+        <div className="glass-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, padding: 0 }}>
+          <div style={{ padding: '14px 14px 6px', display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(0,255,65,0.1)' }}>
+            <div className="panel-title" style={{ marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>AGENT TERMINAL</div>
             <button
               onClick={() => setMessages([{ type: "agent", text: "Session cleared." }])}
-              className="ml-auto text-xs muted hover:text-green-400 transition-colors"
+              className="muted"
+              style={{ marginLeft: 'auto', fontSize: '10px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-mono)' }}
             >
               [CLEAR]
             </button>
           </div>
 
-          {/* Messages */}
-          <div
-            ref={(el) => { if (el) endRef.current && el.scrollTo({ top: el.scrollHeight }); }}
-            className="flex-1 overflow-y-auto p-4 space-y-3"
-            style={{ maxHeight: "calc(100vh - 340px)", minHeight: 280 }}
-          >
+          <div style={{ flex: 1, overflowY: 'auto', padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px', minHeight: 0 }}>
             {messages.map((msg, i) => {
               if (msg.type === "user") {
                 return (
-                  <div key={i} className="flex justify-end fade-in">
-                    <div className="max-w-[85%]">
-                      <p className="text-xs muted text-right mb-1">YOU ▸</p>
-                      <div className="panel p-3 border-r-2 border-r-green-400/60 text-sm">
+                  <div key={i} className="fade-in" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <div style={{ maxWidth: '85%' }}>
+                      <p className="muted" style={{ fontSize: '9px', textAlign: 'right', marginBottom: '4px', letterSpacing: '0.2em' }}>YOU ▸</p>
+                      <div style={{ background: 'rgba(0,255,65,0.05)', border: '1px solid rgba(0,255,65,0.4)', padding: '10px 12px', fontSize: '12px', color: 'var(--green)' }}>
                         {msg.text}
                       </div>
                     </div>
@@ -142,34 +125,25 @@ export default function AgentPage() {
               if (msg.type === "deploy") {
                 return (
                   <div key={i} className="fade-in">
-                    <p className="text-xs muted mb-1">▸ AGENT</p>
-                    <div className="panel-bright p-4 space-y-3">
-                      <p className="text-success tracking-widest text-sm">✔ DEPLOYMENT RESULT</p>
-                      <div className="border-t border-green-400/15 pt-3 space-y-1 text-xs">
-                        {msg.name && (
-                          <p><span className="muted">NAME:    </span>{msg.name}</p>
-                        )}
+                    <p className="muted" style={{ fontSize: '9px', marginBottom: '4px', letterSpacing: '0.2em' }}>▸ AGENT</p>
+                    <div className="glass-panel">
+                      <p className="text-success" style={{ letterSpacing: '0.2em', fontSize: '12px' }}>✔ DEPLOYMENT RESULT</p>
+                      <div style={{ borderTop: '1px solid rgba(0,255,65,0.15)', paddingTop: '10px', marginTop: '8px', fontSize: '11px' }}>
+                        {msg.name && (<p><span className="muted">NAME:    </span>{msg.name}</p>)}
                         <p><span className="muted">NETWORK: </span>Base Mainnet</p>
-                        <p className="break-all">
+                        <p style={{ wordBreak: 'break-all' }}>
                           <span className="muted">CA:      </span>
-                          <span className="text-green-400">{msg.ca}</span>
+                          <span style={{ color: 'var(--green)' }}>{msg.ca}</span>
                         </p>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        <button onClick={() => copyCA(msg.ca)} className="btn-primary py-1.5 text-xs"
-                                style={{ width: "auto", padding: "6px 14px" }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
+                        <button onClick={() => copyCA(msg.ca)} className="neon-btn" style={{ width: 'auto', padding: '6px 14px', fontSize: '10px' }}>
                           {copied === msg.ca ? "COPIED!" : "COPY CA"}
                         </button>
-                        <a href={`https://basescan.org/token/${msg.ca}`}
-                           target="_blank" rel="noreferrer"
-                           className="btn-primary py-1.5 text-xs no-underline"
-                           style={{ width: "auto", padding: "6px 14px" }}>
+                        <a href={`https://basescan.org/token/${msg.ca}`} target="_blank" rel="noreferrer" className="neon-btn" style={{ width: 'auto', padding: '6px 14px', fontSize: '10px', textDecoration: 'none', display: 'inline-block' }}>
                           BASESCAN
                         </a>
-                        <a href={`https://swap.bankr.bot/?outputToken=${msg.ca}`}
-                           target="_blank" rel="noreferrer"
-                           className="btn-primary py-1.5 text-xs no-underline"
-                           style={{ width: "auto", padding: "6px 14px" }}>
+                        <a href={`https://swap.bankr.bot/?outputToken=${msg.ca}`} target="_blank" rel="noreferrer" className="neon-btn" style={{ width: 'auto', padding: '6px 14px', fontSize: '10px', textDecoration: 'none', display: 'inline-block' }}>
                           TRADE
                         </a>
                       </div>
@@ -178,13 +152,10 @@ export default function AgentPage() {
                 );
               }
 
-              /* agent */
               return (
                 <div key={i} className="fade-in">
-                  <p className="text-xs muted mb-1">▸ AGENT</p>
-                  <div className={`panel p-3 text-sm leading-relaxed ${
-                    msg.text.startsWith("✖") ? "text-error" : "text-green-400"
-                  }`}>
+                  <p className="muted" style={{ fontSize: '9px', marginBottom: '4px', letterSpacing: '0.2em' }}>▸ AGENT</p>
+                  <div style={{ background: 'rgba(0,10,3,0.6)', border: '1px solid rgba(0,255,65,0.2)', padding: '10px 12px', fontSize: '12px', lineHeight: 1.6, color: msg.text.startsWith("x") ? '#ff4466' : 'var(--green)' }}>
                     {msg.text}
                   </div>
                 </div>
@@ -193,42 +164,36 @@ export default function AgentPage() {
 
             {typing && (
               <div className="fade-in">
-                <p className="text-xs muted mb-1">▸ AGENT</p>
-                <div className="panel p-3 text-sm muted">
+                <p className="muted" style={{ fontSize: '9px', marginBottom: '4px', letterSpacing: '0.2em' }}>▸ AGENT</p>
+                <div className="muted" style={{ background: 'rgba(0,10,3,0.6)', border: '1px solid rgba(0,255,65,0.2)', padding: '10px 12px', fontSize: '12px' }}>
                   processing<span className="cursor-blink">_</span>
                 </div>
               </div>
             )}
-
             <div ref={endRef} />
           </div>
 
-          {/* Input bar */}
-          <div className="border-t border-green-400/15 p-4 flex gap-3 flex-shrink-0">
-            <div className="flex-1 flex items-center gap-2">
-              <span className="text-green-400/40 text-xs flex-shrink-0">&gt;</span>
-              <input
-                ref={inputRef}
-                className="flex-1 bg-transparent border-none outline-none
-                           text-green-400 font-mono text-sm placeholder:text-green-400/25"
-                placeholder="deploy a meme coin about..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && send()}
-                disabled={typing}
-              />
-            </div>
+          <div style={{ borderTop: '1px solid rgba(0,255,65,0.15)', padding: '12px 14px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <span className="muted" style={{ fontSize: '12px', flexShrink: 0 }}>&gt;</span>
+            <input
+              className="terminal-input"
+              style={{ borderBottom: 'none', flex: 1, padding: '4px 0' }}
+              placeholder="deploy a meme coin about..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && send()}
+              disabled={typing}
+            />
             <button
               onClick={() => send()}
               disabled={typing || !input.trim()}
-              className="btn-primary text-xs"
-              style={{ width: "auto", padding: "8px 20px" }}
+              className="neon-btn"
+              style={{ width: 'auto', padding: '8px 18px', fontSize: '10px' }}
             >
               EXECUTE
             </button>
           </div>
         </div>
-
       </div>
     </main>
   );

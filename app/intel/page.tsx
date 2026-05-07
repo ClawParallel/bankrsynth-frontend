@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
-// Always-available fallback — page never shows a raw error
 const FALLBACK: Narrative[] = [
   { title: "AI AGENTS",     desc: "Autonomous on-chain agents gaining traction on Base",     strength: 92 },
   { title: "BASE ECOSYSTEM",desc: "TVL and developer activity surging on Base",               strength: 84 },
@@ -23,9 +22,9 @@ const SCAN_LINES = [
 ];
 
 function strengthLabel(s: number) {
-  if (s > 80) return { label: "HIGH",   cls: "border-green-400/40 text-success"  };
-  if (s > 60) return { label: "MED",    cls: "border-yellow-400/40 text-warn"   };
-  return              { label: "LOW",    cls: "border-green-400/20 muted"        };
+  if (s > 80) return { label: "HIGH", color: 'var(--green)', border: 'rgba(0,255,65,0.5)', glow: '0 0 8px var(--green)' };
+  if (s > 60) return { label: "MED",  color: 'var(--gold)',  border: 'rgba(255,215,0,0.5)', glow: '0 0 8px var(--gold)' };
+  return              { label: "LOW",  color: 'rgba(0,255,65,0.45)', border: 'rgba(0,255,65,0.2)', glow: 'none' };
 }
 
 export default function IntelPage() {
@@ -39,7 +38,6 @@ export default function IntelPage() {
     setFallback(false);
 
     try {
-      // Try GET /narratives first
       let parsed: Narrative[] | null = null;
       try {
         const r = await fetch(`${API}/narratives`, { signal: AbortSignal.timeout(6000) });
@@ -51,7 +49,6 @@ export default function IntelPage() {
         }
       } catch { /* fallthrough */ }
 
-      // Try POST /agent as backup
       if (!parsed) {
         try {
           const r = await fetch(`${API}/agent`, {
@@ -69,7 +66,6 @@ export default function IntelPage() {
       }
 
       if (parsed && parsed.length > 0) {
-        // Normalize items — backend may use different key names
         setNarratives(
           parsed.map((n: any) => ({
             title:    n.title    ?? n.topic ?? n.name ?? "UNKNOWN",
@@ -92,91 +88,85 @@ export default function IntelPage() {
 
   useEffect(() => { scan(); }, []); // eslint-disable-line
 
-  const { label: _, ...__ } = strengthLabel(0); // type warm-up
-
   return (
-    <main className="page-wrapper min-h-screen pt-16 pb-12 px-4 sm:px-8">
-
-      {/* Header */}
-      <div className="max-w-5xl mx-auto mb-6 flex flex-col sm:flex-row sm:items-center
-                      sm:justify-between gap-3">
+    <main className="page-wrapper" style={{ padding: '20px 16px 48px' }}>
+      <div className="max-w-5xl mx-auto" style={{ marginBottom: '20px', display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '12px' }}>
         <div>
-          <p className="text-xs muted tracking-widest mb-1">BANKRSYNTH://</p>
-          <h1 className="text-xl tracking-widest glow-text-soft">NARRATIVE SCANNER</h1>
+          <p className="muted" style={{ fontSize: '10px', letterSpacing: '0.3em' }}>BANKRSYNTH://</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(18px,3vw,26px)', letterSpacing: '0.2em', color: 'var(--green)', textShadow: '0 0 20px rgba(0,255,65,0.4)', marginTop: '4px' }}>
+            ◎ INTEL // NARRATIVE SCANNER
+          </h1>
           {fallback && (
-            <p className="text-xs text-warn mt-1">⚠ Using cached data — live feed unavailable</p>
+            <p className="text-warn" style={{ fontSize: '10px', marginTop: '4px' }}>! Using cached data — live feed unavailable</p>
           )}
         </div>
-        <div className="flex items-center gap-3">
-          {lastScan && <span className="text-xs muted">LAST SCAN: {lastScan}</span>}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {lastScan && <span className="muted" style={{ fontSize: '10px' }}>LAST SCAN: {lastScan}</span>}
           <button
             onClick={scan}
             disabled={loading}
-            className="btn-primary text-xs"
-            style={{ width: "auto", padding: "8px 20px" }}
+            className="neon-btn"
+            style={{ width: 'auto', padding: '8px 16px', fontSize: '10px' }}
           >
             {loading ? "SCANNING..." : "↺ RESCAN"}
           </button>
         </div>
       </div>
 
-      {/* Loading state */}
       {loading && (
-        <div className="max-w-5xl mx-auto panel p-6 space-y-2">
+        <div className="max-w-5xl mx-auto glass-panel">
+          <div className="corner corner-tl" />
+          <div className="panel-title">SCAN IN PROGRESS</div>
           {SCAN_LINES.map((s, i) => (
-            <p key={i} className="text-xs muted fade-in"
-               style={{ animationDelay: `${i * 0.4}s` }}>
+            <p key={i} className="muted fade-in" style={{ animationDelay: `${i * 0.4}s`, fontSize: '11px', marginBottom: '4px' }}>
               &gt; {s}...
             </p>
           ))}
-          <span className="text-green-400 cursor-blink">_</span>
+          <span className="cursor-blink" style={{ color: 'var(--green)' }}>_</span>
         </div>
       )}
 
-      {/* Results grid */}
       {!loading && (
-        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="max-w-5xl mx-auto" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
           {narratives.map((n, i) => {
-            const { label, cls } = strengthLabel(n.strength);
+            const { label, color, border, glow } = strengthLabel(n.strength);
             return (
               <div
                 key={i}
-                className="panel p-4 hover:border-green-400/40 transition-all duration-200 fade-in"
+                className="glass-panel fade-in"
                 style={{ animationDelay: `${i * 0.06}s` }}
               >
-                {/* Rank + title + badge */}
-                <div className="flex items-start justify-between mb-3 gap-2">
+                <div className="corner corner-tl" />
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px', gap: '8px' }}>
                   <div>
-                    <p className="text-xs muted tracking-widest mb-0.5">#{i + 1}</p>
-                    <p className="text-sm tracking-widest font-bold">{n.title}</p>
+                    <p className="muted" style={{ fontSize: '9px', letterSpacing: '0.2em', marginBottom: '2px' }}>#{i + 1}</p>
+                    <p style={{ fontSize: '13px', letterSpacing: '0.15em', fontWeight: 700, color: 'var(--green)', fontFamily: 'var(--font-display)' }}>{n.title}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 border tracking-widest flex-shrink-0 ${cls}`}>
+                  <span style={{
+                    fontSize: '9px',
+                    padding: '3px 8px',
+                    border: `1px solid ${border}`,
+                    color,
+                    letterSpacing: '0.2em',
+                    flexShrink: 0,
+                    textShadow: glow,
+                    fontFamily: 'var(--font-mono)',
+                  }}>
                     {label}
                   </span>
                 </div>
 
-                {/* Description */}
-                <p className="text-xs muted leading-relaxed mb-3">{n.desc}</p>
+                <p className="muted" style={{ fontSize: '11px', lineHeight: 1.5, marginBottom: '10px', minHeight: '34px' }}>{n.desc}</p>
 
-                {/* Strength bar */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs muted">
-                    <span>SIGNAL</span>
-                    <span>{n.strength}%</span>
-                  </div>
-                  <div className="h-0.5 bg-green-400/10 overflow-hidden">
-                    <div
-                      className="h-full bg-green-400/60 transition-all duration-1000"
-                      style={{ width: `${n.strength}%` }}
-                    />
-                  </div>
+                <div className="prog-wrap">
+                  <div className="prog-label"><span>SIGNAL</span><span>{n.strength}%</span></div>
+                  <div className="prog-track"><div className="prog-fill" style={{ width: `${n.strength}%` }} /></div>
                 </div>
               </div>
             );
           })}
         </div>
       )}
-
     </main>
   );
 }
