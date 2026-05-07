@@ -82,12 +82,36 @@ export default function LaunchPage() {
       {/* Page header */}
       <div className="flex items-center justify-between mb-6 max-w-6xl mx-auto">
         <div>
-          <p className="text-xs muted tracking-widest mb-1">BANKRSYNTH://</p>
-          <h1 className="text-xl tracking-widest glow-text-soft">LAUNCH TERMINAL</h1>
+          <p
+            className="text-xs tracking-[0.25em] mb-1"
+            style={{ color: "rgba(0,255,156,0.3)" }}
+          >
+            BANKRSYNTH:// BASE_MAINNET
+          </p>
+          <h1
+            className="text-xl tracking-[0.2em] glow-text-soft font-mono uppercase"
+            style={{ color: "#00ff9c" }}
+          >
+            LAUNCH TERMINAL
+          </h1>
         </div>
-        <div className="flex items-center gap-2 panel px-3 py-2">
-          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
-          <span className="text-xs muted tracking-widest">BANKR API READY</span>
+        <div
+          className="panel flex items-center gap-2 px-3 py-2"
+          style={{ fontSize: "11px" }}
+        >
+          <span
+            className="w-2 h-2 rounded-full animate-pulse flex-shrink-0"
+            style={{
+              background: "#00ff9c",
+              boxShadow: "0 0 8px #00ff9c",
+            }}
+          />
+          <span
+            className="tracking-[0.15em] font-mono"
+            style={{ color: "rgba(0,255,156,0.6)" }}
+          >
+            BANKR API READY
+          </span>
         </div>
       </div>
 
@@ -95,19 +119,27 @@ export default function LaunchPage() {
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-4">
 
         {/* LEFT — form (3 cols) */}
-        <div className="lg:col-span-3 panel">
+        <div className="lg:col-span-3 panel panel-scan">
           <div className="panel-header">
             <span className="panel-dot" />
             <span className="panel-dot-dim" />
             <span className="panel-dot-dim" />
             <span className="ml-2">DEPLOYMENT PARAMETERS</span>
           </div>
-          <div className="p-6">
+          <div className="p-6 relative z-10">
             <div className="space-y-0">
               {FIELDS.map((f) => (
                 <div key={f.key} className="input-group">
                   <label className="input-label">
-                    {f.label}{f.required && <span className="text-green-400 ml-1">*</span>}
+                    {f.label}
+                    {f.required && (
+                      <span
+                        className="ml-1"
+                        style={{ color: "#00ff9c" }}
+                      >
+                        *
+                      </span>
+                    )}
                   </label>
                   <input
                     className="terminal-input"
@@ -124,19 +156,34 @@ export default function LaunchPage() {
               <button
                 onClick={deploy}
                 disabled={!canDeploy}
-                className="btn-primary"
+                className={`btn-primary ${loading ? "pulse-glow-anim" : ""}`}
               >
-                {loading ? DEPLOY_CYCLE[cycleIdx] : "◈ EXECUTE DEPLOY"}
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="cursor-blink">▶</span>
+                    {DEPLOY_CYCLE[cycleIdx]}
+                  </span>
+                ) : (
+                  "◈ EXECUTE DEPLOY"
+                )}
               </button>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-green-400/10 space-y-1">
+            <div
+              className="mt-4 pt-4 space-y-1"
+              style={{ borderTop: "1px solid rgba(0,255,156,0.08)" }}
+            >
               <p className="text-xs muted">&gt; Fields marked * are required</p>
               <p className="text-xs muted">&gt; SYMBOL auto-generated from name if empty</p>
               <p className="text-xs muted">
                 &gt; Upload images at{" "}
-                <a href="https://imgbb.com/" target="_blank" rel="noreferrer"
-                   className="text-green-400/70 hover:text-green-400 underline transition-colors">
+                <a
+                  href="https://imgbb.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: "rgba(0,255,156,0.6)" }}
+                  className="hover:text-green-400 underline transition-colors"
+                >
                   imgbb.com
                 </a>
               </p>
@@ -157,32 +204,40 @@ export default function LaunchPage() {
             {/* Idle */}
             {!loading && !result && !error && (
               <>
-                <p className="muted">&gt; awaiting parameters...</p>
-                <p className="muted">&gt; fill form to deploy</p>
-                <p className="text-green-400"><span className="cursor-blink">_</span></p>
+                <p className="muted">&gt; system standing by...</p>
+                <p className="muted">&gt; awaiting deploy parameters</p>
+                <p className="muted">&gt; BASE_CHAIN: connected</p>
+                <p style={{ color: "#00ff9c" }}>
+                  <span className="cursor-blink">_</span>
+                </p>
               </>
             )}
 
             {/* Loading */}
             {loading && (
               <div className="space-y-2">
-                {["connecting to bankr api",
+                {[
+                  "connecting to bankr api",
                   "generating deployment wallet",
                   "broadcasting transaction",
                   "waiting for confirmation",
                 ].map((s, i) => (
-                  <p key={i} className="muted fade-in"
-                     style={{ animationDelay: `${i * 0.8}s` }}>
-                    &gt; {s}...
+                  <p
+                    key={i}
+                    className="muted fade-in"
+                    style={{ animationDelay: `${i * 0.8}s` }}
+                  >
+                    <span style={{ color: "rgba(0,255,156,0.5)" }}>[{String(i + 1).padStart(2, "0")}]</span>{" "}
+                    {s}...
                   </p>
                 ))}
-                <span className="text-green-400 cursor-blink">_</span>
+                <span style={{ color: "#00ff9c" }} className="cursor-blink">_</span>
               </div>
             )}
 
             {/* Error */}
             {error && !loading && (
-              <div className="space-y-2">
+              <div className="space-y-2 fade-in">
                 <p className="text-error">✖ DEPLOY FAILED</p>
                 <p className="muted">&gt; {error}</p>
                 <p className="muted">&gt; check parameters and retry</p>
@@ -191,20 +246,28 @@ export default function LaunchPage() {
 
             {/* Success */}
             {result?.success && !loading && (
-              <div className="space-y-3">
-                <p className="text-success">✔ DEPLOY SUCCESS</p>
+              <div className="space-y-3 fade-in">
+                <p
+                  className="text-success tracking-widest"
+                  style={{ textShadow: "0 0 10px rgba(0,255,156,0.8)" }}
+                >
+                  ✔ DEPLOY SUCCESS
+                </p>
 
-                <div className="border border-green-400/20 p-3 space-y-2">
-                  <p className="muted">CONTRACT ADDRESS</p>
-                  <p className="text-green-400 break-all leading-relaxed">
+                <div
+                  className="p-3 space-y-2"
+                  style={{ border: "1px solid rgba(0,255,156,0.25)", background: "rgba(0,255,156,0.03)" }}
+                >
+                  <p className="muted tracking-widest">CONTRACT ADDRESS</p>
+                  <p className="break-all leading-relaxed" style={{ color: "#00ff9c" }}>
                     {result.tokenAddress}
                   </p>
                   <button
                     onClick={copyCA}
-                    className="btn-primary py-1.5 text-xs mt-1"
+                    className="btn-primary text-xs"
                     style={{ width: "auto", padding: "6px 16px" }}
                   >
-                    {copied ? "COPIED!" : "COPY CA"}
+                    {copied ? "✔ COPIED" : "COPY CA"}
                   </button>
                 </div>
 
@@ -213,21 +276,21 @@ export default function LaunchPage() {
                 )}
 
                 <div className="space-y-2 pt-1">
-                  <a href={`https://basescan.org/token/${result.tokenAddress}`}
-                     target="_blank" rel="noreferrer"
-                     className="block text-xs muted hover:text-green-400 transition-colors">
-                    → VIEW ON BASESCAN
-                  </a>
-                  <a href={`https://www.geckoterminal.com/base/pools/${result.poolId}`}
-                     target="_blank" rel="noreferrer"
-                     className="block text-xs muted hover:text-green-400 transition-colors">
-                    → VIEW ON GECKOTERMINAL
-                  </a>
-                  <a href={`https://swap.bankr.bot/?outputToken=${result.tokenAddress}`}
-                     target="_blank" rel="noreferrer"
-                     className="block text-xs muted hover:text-green-400 transition-colors">
-                    → TRADE ON BANKR SWAP
-                  </a>
+                  {[
+                    { href: `https://basescan.org/token/${result.tokenAddress}`,             label: "VIEW ON BASESCAN" },
+                    { href: `https://www.geckoterminal.com/base/pools/${result.poolId}`,     label: "VIEW ON GECKOTERMINAL" },
+                    { href: `https://swap.bankr.bot/?outputToken=${result.tokenAddress}`,    label: "TRADE ON BANKR SWAP" },
+                  ].map(({ href, label }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block text-xs muted hover:text-green-400 transition-colors"
+                    >
+                      → {label}
+                    </a>
+                  ))}
                 </div>
 
                 <p className="muted">&gt; END OF TRANSMISSION</p>
