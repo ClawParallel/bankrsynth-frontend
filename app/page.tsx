@@ -1,191 +1,129 @@
-import MatrixRain from "@/components/MatrixRain";
-import SystemLogs from "@/components/SystemLogs";
-import TypingText from "@/components/TypingText";
-import Link from "next/link";
+'use client'
+import dynamic from 'next/dynamic'
+import { useState } from 'react'
+import MiniChart from '@/components/ui/MiniChart'
+import TerminalLog from '@/components/ui/TerminalLog'
+import TxStream from '@/components/ui/TxStream'
+import AiMetrics from '@/components/ui/AiMetrics'
 
-const modules = [
-  {
-    href: "/launch",
-    icon: "◈",
-    title: "LAUNCH",
-    desc: "Deploy tokens on Base",
-    tag: "DEPLOY",
-  },
-  {
-    href: "/agent",
-    icon: "⬡",
-    title: "AGENT",
-    desc: "Autonomous execution",
-    tag: "AI",
-  },
-  {
-    href: "/terminal",
-    icon: "◉",
-    title: "TERMINAL",
-    desc: "Market intelligence",
-    tag: "ANALYSIS",
-  },
-  {
-    href: "/intel",
-    icon: "◎",
-    title: "INTEL FEED",
-    desc: "Narrative scanner",
-    tag: "SIGNAL",
-  },
-];
+const CryptoSphere = dynamic(() => import('@/components/CryptoSphere'), { ssr: false })
+
+type Mode = 'sphere' | 'helix' | 'grid' | 'network' | 'terminal'
+const MODES: { key: Mode; label: string; icon: string }[] = [
+  { key: 'sphere', label: 'SPHERE', icon: '◉' },
+  { key: 'helix', label: 'HELIX', icon: '⌬' },
+  { key: 'grid', label: 'GRID', icon: '⊞' },
+  { key: 'network', label: 'NETWORK', icon: '⬡' },
+  { key: 'terminal', label: 'TERMINAL', icon: '▸' },
+]
 
 export default function Home() {
+  const [mode, setMode] = useState<Mode>('sphere')
+
   return (
-    <main className="page-wrapper min-h-screen flex flex-col items-center justify-center px-6 pt-16 pb-12">
-      <MatrixRain />
+    <div style={{ position: 'relative', minHeight: '100vh', paddingTop: '56px', overflow: 'hidden' }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 1, pointerEvents: 'none' }}>
+        <CryptoSphere mode={mode} />
+      </div>
 
-      <div className="flex flex-col items-center gap-7 max-w-2xl w-full">
-
-        {/* Eyebrow */}
-        <p
-          className="text-xs tracking-[0.35em] uppercase"
-          style={{ color: "rgba(0,255,156,0.4)" }}
-        >
-          AUTONOMOUS EXECUTION LAYER · BASE MAINNET
-        </p>
-
-        {/* Title block */}
-        <div className="text-center relative">
-          {/* Top corner accents */}
-          <div
-            className="absolute -top-4 -left-4 w-6 h-6 border-l-2 border-t-2"
-            style={{ borderColor: "rgba(0,255,156,0.35)" }}
-          />
-          <div
-            className="absolute -top-4 -right-4 w-6 h-6 border-r-2 border-t-2"
-            style={{ borderColor: "rgba(0,255,156,0.35)" }}
-          />
-
-          <h1
-            className="text-5xl sm:text-7xl font-bold tracking-[0.2em] glow-text flicker"
-            style={{ color: "#00ff9c" }}
-          >
-            <TypingText text="BANKRSYNTH" />
-          </h1>
-          <p
-            className="text-xs tracking-[0.25em] mt-3"
-            style={{ color: "rgba(0,255,156,0.35)" }}
-          >
-            v2.0 // NEURAL DEPLOYMENT NODE
-          </p>
-
-          {/* Bottom corner accents */}
-          <div
-            className="absolute -bottom-4 -left-4 w-6 h-6 border-l-2 border-b-2"
-            style={{ borderColor: "rgba(0,255,156,0.35)" }}
-          />
-          <div
-            className="absolute -bottom-4 -right-4 w-6 h-6 border-r-2 border-b-2"
-            style={{ borderColor: "rgba(0,255,156,0.35)" }}
-          />
-        </div>
-
-        {/* Divider */}
-        <div className="w-full flex items-center gap-3">
-          <div
-            className="flex-1 h-px"
-            style={{ background: "linear-gradient(90deg, transparent, rgba(0,255,156,0.3))" }}
-          />
-          <span
-            className="text-xs tracking-[0.25em] px-2"
-            style={{ color: "rgba(0,255,156,0.3)" }}
-          >
-            SYS
-          </span>
-          <div
-            className="flex-1 h-px"
-            style={{ background: "linear-gradient(90deg, rgba(0,255,156,0.3), transparent)" }}
-          />
-        </div>
-
-        {/* Boot log panel */}
-        <div className="w-full panel panel-scan">
-          <div className="panel-header">
-            <span className="panel-dot" />
-            <span className="panel-dot-dim" />
-            <span className="panel-dot-dim" />
-            <span className="ml-2">SYSTEM BOOT LOG</span>
-            <span
-              className="ml-auto text-xs"
-              style={{ color: "rgba(0,255,156,0.3)" }}
+      <div style={{ position: 'relative', zIndex: 10, pointerEvents: 'none', padding: '12px 16px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', pointerEvents: 'all', marginBottom: '12px' }}>
+          {MODES.map(m => (
+            <button
+              key={m.key}
+              className={`mode-btn ${mode === m.key ? 'active' : ''}`}
+              onClick={() => setMode(m.key)}
             >
-              NODE_0x1A
-            </span>
-          </div>
-          <div className="p-4 relative z-10">
-            <SystemLogs />
-          </div>
-        </div>
-
-        {/* Module cards — 2×2 grid */}
-        <div className="grid grid-cols-2 gap-3 w-full">
-          {modules.map((m) => (
-            <Link key={m.href} href={m.href} className="no-underline">
-              <div
-                className="panel panel-card p-4 cursor-pointer relative overflow-hidden"
-                style={{ minHeight: "100px" }}
-              >
-                {/* Tag */}
-                <span
-                  className="absolute top-3 right-3 text-[9px] tracking-[0.15em] px-1.5 py-0.5 border"
-                  style={{
-                    color: "rgba(0,255,156,0.4)",
-                    borderColor: "rgba(0,255,156,0.2)",
-                  }}
-                >
-                  {m.tag}
-                </span>
-
-                {/* Icon */}
-                <div
-                  className="text-2xl mb-2 glow-text-soft transition-all"
-                  style={{ color: "#00ff9c" }}
-                >
-                  {m.icon}
-                </div>
-
-                {/* Title */}
-                <div
-                  className="text-xs tracking-[0.2em] font-bold mb-1"
-                  style={{ color: "#00ff9c", textShadow: "0 0 6px rgba(0,255,156,0.4)" }}
-                >
-                  {m.title}
-                </div>
-
-                {/* Desc */}
-                <div
-                  className="text-xs"
-                  style={{ color: "rgba(0,255,156,0.4)" }}
-                >
-                  {m.desc}
-                </div>
-
-                {/* Bottom arrow */}
-                <div
-                  className="absolute bottom-3 right-3 text-xs transition-all"
-                  style={{ color: "rgba(0,255,156,0.2)" }}
-                >
-                  →
-                </div>
-              </div>
-            </Link>
+              {m.icon} {m.label}
+            </button>
           ))}
         </div>
 
-        {/* Footer */}
-        <p
-          className="text-xs tracking-[0.25em]"
-          style={{ color: "rgba(0,255,156,0.25)" }}
-        >
-          BUILT ON BASE · POWERED BY BANKR
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', pointerEvents: 'all', gap: '12px' }}>
+          <div className="hide-mobile" style={{ width: '240px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="glass-panel">
+              <div className="corner corner-tl" /><div className="corner corner-br" />
+              <div className="panel-title">WALLET CORE</div>
+              <div style={{ fontSize: '9px', color: 'rgba(0,255,65,0.4)', marginBottom: '8px', animation: 'addrShift 4s infinite', fontFamily: 'var(--font-mono)' }}>0x7F3a...B92c</div>
+              <div className="metric-row"><span className="metric-label">ETH BAL</span><span className="metric-val">14.2931</span></div>
+              <div className="metric-row"><span className="metric-label">cmETH</span><span className="metric-val red">891.44</span></div>
+              <div className="metric-row"><span className="metric-label">SOL</span><span className="metric-val gold">203.17</span></div>
+              <div className="metric-row"><span className="metric-label">USD VAL</span><span className="metric-val cyan">$47,291</span></div>
+              <MiniChart />
+            </div>
 
+            <div className="glass-panel">
+              <div className="corner corner-tl" />
+              <div className="panel-title">AI SYSTEM METRICS</div>
+              <AiMetrics />
+            </div>
+
+            <div className="glass-panel">
+              <div className="panel-title">SYS LOG</div>
+              <TerminalLog />
+            </div>
+          </div>
+
+          <div className="hide-mobile" style={{ width: '240px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="glass-panel red-panel">
+              <div className="corner corner-tl" style={{ borderColor: 'rgba(255,26,60,0.4)' }} />
+              <div className="panel-title red">cmETH CRYSTAL CORE</div>
+              <div className="metric-row"><span className="metric-label">PRICE</span><span className="metric-val red">$2,847.33</span></div>
+              <div className="metric-row"><span className="metric-label">24H</span><span className="metric-val">+4.7%</span></div>
+              <div className="metric-row"><span className="metric-label">ENERGY</span><span className="metric-val red">91.4 THz</span></div>
+              <div className="metric-row"><span className="metric-label">SHARDS</span><span className="metric-val red">1,337</span></div>
+              <MiniChart isRed />
+              <div className="prog-wrap">
+                <div className="prog-label"><span>CRYSTAL RESONANCE</span><span>91%</span></div>
+                <div className="prog-track"><div className="prog-fill red-fill" style={{ width: '91%' }} /></div>
+              </div>
+            </div>
+
+            <div className="glass-panel">
+              <div className="panel-title">NETWORK</div>
+              <div className="metric-row"><span className="metric-label">PEERS</span><span className="metric-val">2,847</span></div>
+              <div className="metric-row"><span className="metric-label">TPS</span><span className="metric-val cyan">4,193</span></div>
+              <div className="metric-row"><span className="metric-label">LATENCY</span><span className="metric-val">12ms</span></div>
+            </div>
+
+            <div className="glass-panel">
+              <div className="panel-title">TX STREAM</div>
+              <TxStream />
+            </div>
+          </div>
+        </div>
       </div>
-    </main>
-  );
+
+      <div style={{ position: 'fixed', bottom: '16px', left: '50%', transform: 'translateX(-50%)', width: 'min(700px, 90vw)', zIndex: 10 }}>
+        <div className="glass-panel">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', textAlign: 'center' }}>
+            {[
+              { num: '$2.91T', label: 'TOTAL MKT CAP', color: 'var(--green)' },
+              { num: '$847B', label: '24H VOLUME', color: 'var(--red)' },
+              { num: '52.4%', label: 'BTC DOMINANCE', color: 'var(--green)' },
+              { num: '74', label: 'FEAR & GREED', color: 'var(--cyan)' },
+            ].map(s => (
+              <div key={s.label}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(14px,2vw,20px)', fontWeight: 700, color: s.color, textShadow: `0 0 20px ${s.color}` }}>{s.num}</div>
+                <div style={{ fontSize: '9px', color: 'rgba(0,255,65,0.4)', letterSpacing: '0.1em', marginTop: '2px' }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="sm:hidden" style={{ padding: '16px', zIndex: 10, position: 'relative' }}>
+        <div className="glass-panel" style={{ marginBottom: '12px' }}>
+          <div className="panel-title">SYSTEM STATUS</div>
+          <div className="metric-row"><span className="metric-label">BASE NETWORK</span><span className="metric-val">ONLINE</span></div>
+          <div className="metric-row"><span className="metric-label">AGENT</span><span className="metric-val cyan">ACTIVE</span></div>
+          <div className="metric-row"><span className="metric-label">TPS</span><span className="metric-val">4,193</span></div>
+        </div>
+        <div className="glass-panel">
+          <div className="panel-title">SYS LOG</div>
+          <TerminalLog maxLines={5} />
+        </div>
+      </div>
+    </div>
+  )
 }

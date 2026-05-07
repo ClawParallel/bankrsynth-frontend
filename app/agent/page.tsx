@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import MatrixRain from "@/components/MatrixRain";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
@@ -26,11 +25,9 @@ export default function AgentPage() {
   const [copied, setCopied] = useState<string | null>(null);
 
   const endRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
 
   const send = async (text?: string) => {
@@ -57,13 +54,13 @@ export default function AgentPage() {
         if (agentText) setMessages((p) => [...p, { type: "agent", text: agentText }]);
         if (ca)         setMessages((p) => [...p, { type: "deploy", ca, name: data?.deployResult?.name }]);
         if (!agentText && !ca)
-          setMessages((p) => [...p, { type: "agent", text: "✖ No response from agent. Try again." }]);
+          setMessages((p) => [...p, { type: "agent", text: "x No response from agent. Try again." }]);
       }, 1500);
     } catch {
       setTyping(false);
       setMessages((p) => [
         ...p,
-        { type: "agent", text: "✖ Connection failed. Check network or try again." },
+        { type: "agent", text: "x Connection failed. Check network or try again." },
       ]);
     }
   };
@@ -75,91 +72,49 @@ export default function AgentPage() {
   };
 
   return (
-    <main className="page-wrapper">
-      <MatrixRain />
-
-      <div className="relative z-10 min-h-screen pt-16 pb-0 flex flex-col max-w-3xl mx-auto px-4">
-
-        {/* Page header */}
-        <div className="py-4 flex items-center justify-between flex-shrink-0">
-          <div>
-            <p
-              className="text-xs tracking-[0.25em] mb-0.5"
-              style={{ color: "rgba(0,255,156,0.3)" }}
-            >
-              BANKRSYNTH:// AGENT_NODE
-            </p>
-            <h1
-              className="text-lg tracking-[0.2em] glow-text-soft font-mono uppercase"
-              style={{ color: "#00ff9c" }}
-            >
-              AUTONOMOUS AGENT
-            </h1>
-          </div>
-          <div
-            className="panel flex items-center gap-2 px-3 py-1.5"
-            style={{ fontSize: "11px" }}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full animate-pulse"
-              style={{ background: "#00ff9c", boxShadow: "0 0 6px #00ff9c" }}
-            />
-            <span className="tracking-widest" style={{ color: "rgba(0,255,156,0.55)" }}>
-              BASE LIVE
-            </span>
-          </div>
+    <main className="page-wrapper" style={{ padding: '20px 16px 0' }}>
+      <div className="max-w-4xl mx-auto" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 76px)' }}>
+        <div style={{ marginBottom: '16px' }}>
+          <p className="muted" style={{ fontSize: '10px', letterSpacing: '0.3em' }}>BANKRSYNTH://</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(18px,3vw,26px)', letterSpacing: '0.2em', color: 'var(--green)', textShadow: '0 0 20px rgba(0,255,65,0.4)', marginTop: '4px' }}>
+            ⬡ AGENT // AUTONOMOUS EXECUTION
+          </h1>
         </div>
 
-        {/* Quick commands */}
-        <div className="flex flex-wrap gap-2 mb-3 flex-shrink-0">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
           {QUICK_CMDS.map((cmd) => (
             <button
               key={cmd}
               onClick={() => send(cmd)}
               disabled={typing}
-              className="quick-cmd font-mono"
+              className="mode-btn"
+              style={{ fontSize: '10px' }}
             >
               &gt; {cmd}
             </button>
           ))}
         </div>
 
-        {/* Chat panel */}
-        <div className="flex-1 panel flex flex-col min-h-0 mb-0">
-          <div className="panel-header flex-shrink-0">
-            <span className="panel-dot" />
-            <span className="panel-dot-dim" />
-            <span className="panel-dot-dim" />
-            <span className="ml-2">AGENT TERMINAL</span>
+        <div className="glass-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, padding: 0 }}>
+          <div style={{ padding: '14px 14px 6px', display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(0,255,65,0.1)' }}>
+            <div className="panel-title" style={{ marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>AGENT TERMINAL</div>
             <button
-              onClick={() => setMessages([{ type: "agent", text: "Session cleared. Ready." }])}
-              className="ml-auto text-xs muted hover:text-green-400 transition-colors tracking-widest"
+              onClick={() => setMessages([{ type: "agent", text: "Session cleared." }])}
+              className="muted"
+              style={{ marginLeft: 'auto', fontSize: '10px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-mono)' }}
             >
               [CLEAR]
             </button>
           </div>
 
-          {/* Messages */}
-          <div
-            ref={scrollRef}
-            className="flex-1 overflow-y-auto p-4 space-y-4"
-            style={{ maxHeight: "calc(100vh - 320px)", minHeight: 280 }}
-          >
+          <div style={{ flex: 1, overflowY: 'auto', padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px', minHeight: 0 }}>
             {messages.map((msg, i) => {
               if (msg.type === "user") {
                 return (
-                  <div key={i} className="flex justify-end slide-right">
-                    <div className="max-w-[85%]">
-                      <p
-                        className="text-xs text-right mb-1 tracking-widest"
-                        style={{ color: "rgba(0,255,156,0.4)" }}
-                      >
-                        YOU ▸
-                      </p>
-                      <div
-                        className="panel p-3 text-sm"
-                        style={{ borderRight: "2px solid rgba(0,255,156,0.5)" }}
-                      >
+                  <div key={i} className="fade-in" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <div style={{ maxWidth: '85%' }}>
+                      <p className="muted" style={{ fontSize: '9px', textAlign: 'right', marginBottom: '4px', letterSpacing: '0.2em' }}>YOU ▸</p>
+                      <div style={{ background: 'rgba(0,255,65,0.05)', border: '1px solid rgba(0,255,65,0.4)', padding: '10px 12px', fontSize: '12px', color: 'var(--green)' }}>
                         {msg.text}
                       </div>
                     </div>
@@ -169,66 +124,28 @@ export default function AgentPage() {
 
               if (msg.type === "deploy") {
                 return (
-                  <div key={i} className="slide-left">
-                    <p
-                      className="text-xs mb-1 tracking-widest"
-                      style={{ color: "rgba(0,255,156,0.4)" }}
-                    >
-                      ▸ AGENT
-                    </p>
-                    <div className="panel-bright p-4 space-y-3">
-                      <p
-                        className="tracking-[0.2em] text-sm text-success"
-                        style={{ textShadow: "0 0 10px rgba(0,255,156,0.7)" }}
-                      >
-                        ✔ DEPLOYMENT RESULT
-                      </p>
-                      <div
-                        className="pt-3 space-y-1 text-xs"
-                        style={{ borderTop: "1px solid rgba(0,255,156,0.15)" }}
-                      >
-                        {msg.name && (
-                          <p>
-                            <span className="muted">NAME:    </span>
-                            {msg.name}
-                          </p>
-                        )}
-                        <p>
-                          <span className="muted">NETWORK: </span>Base Mainnet
-                        </p>
-                        <p className="break-all">
+                  <div key={i} className="fade-in">
+                    <p className="muted" style={{ fontSize: '9px', marginBottom: '4px', letterSpacing: '0.2em' }}>▸ AGENT</p>
+                    <div className="glass-panel">
+                      <p className="text-success" style={{ letterSpacing: '0.2em', fontSize: '12px' }}>✔ DEPLOYMENT RESULT</p>
+                      <div style={{ borderTop: '1px solid rgba(0,255,65,0.15)', paddingTop: '10px', marginTop: '8px', fontSize: '11px' }}>
+                        {msg.name && (<p><span className="muted">NAME:    </span>{msg.name}</p>)}
+                        <p><span className="muted">NETWORK: </span>Base Mainnet</p>
+                        <p style={{ wordBreak: 'break-all' }}>
                           <span className="muted">CA:      </span>
-                          <span style={{ color: "#00ff9c" }}>{msg.ca}</span>
+                          <span style={{ color: 'var(--green)' }}>{msg.ca}</span>
                         </p>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          { label: copied === msg.ca ? "✔ COPIED" : "COPY CA", action: () => copyCA(msg.ca), href: undefined },
-                          { label: "BASESCAN", href: `https://basescan.org/token/${msg.ca}`, action: undefined },
-                          { label: "TRADE",    href: `https://swap.bankr.bot/?outputToken=${msg.ca}`, action: undefined },
-                        ].map(({ label, action, href }) =>
-                          href ? (
-                            <a
-                              key={label}
-                              href={href}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="btn-primary no-underline text-xs text-center"
-                              style={{ width: "auto", padding: "6px 14px" }}
-                            >
-                              {label}
-                            </a>
-                          ) : (
-                            <button
-                              key={label}
-                              onClick={action!}
-                              className="btn-primary text-xs"
-                              style={{ width: "auto", padding: "6px 14px" }}
-                            >
-                              {label}
-                            </button>
-                          )
-                        )}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
+                        <button onClick={() => copyCA(msg.ca)} className="neon-btn" style={{ width: 'auto', padding: '6px 14px', fontSize: '10px' }}>
+                          {copied === msg.ca ? "COPIED!" : "COPY CA"}
+                        </button>
+                        <a href={`https://basescan.org/token/${msg.ca}`} target="_blank" rel="noreferrer" className="neon-btn" style={{ width: 'auto', padding: '6px 14px', fontSize: '10px', textDecoration: 'none', display: 'inline-block' }}>
+                          BASESCAN
+                        </a>
+                        <a href={`https://swap.bankr.bot/?outputToken=${msg.ca}`} target="_blank" rel="noreferrer" className="neon-btn" style={{ width: 'auto', padding: '6px 14px', fontSize: '10px', textDecoration: 'none', display: 'inline-block' }}>
+                          TRADE
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -236,19 +153,9 @@ export default function AgentPage() {
               }
 
               return (
-                <div key={i} className="slide-left">
-                  <p
-                    className="text-xs mb-1 tracking-widest"
-                    style={{ color: "rgba(0,255,156,0.4)" }}
-                  >
-                    ▸ AGENT
-                  </p>
-                  <div
-                    className={`panel p-3 text-sm leading-relaxed ${
-                      msg.text.startsWith("✖") ? "text-error" : ""
-                    }`}
-                    style={msg.text.startsWith("✖") ? {} : { color: "#00ff9c" }}
-                  >
+                <div key={i} className="fade-in">
+                  <p className="muted" style={{ fontSize: '9px', marginBottom: '4px', letterSpacing: '0.2em' }}>▸ AGENT</p>
+                  <div style={{ background: 'rgba(0,10,3,0.6)', border: '1px solid rgba(0,255,65,0.2)', padding: '10px 12px', fontSize: '12px', lineHeight: 1.6, color: msg.text.startsWith("x") ? '#ff4466' : 'var(--green)' }}>
                     {msg.text}
                   </div>
                 </div>
@@ -256,58 +163,37 @@ export default function AgentPage() {
             })}
 
             {typing && (
-              <div className="slide-left">
-                <p
-                  className="text-xs mb-1 tracking-widest"
-                  style={{ color: "rgba(0,255,156,0.4)" }}
-                >
-                  ▸ AGENT
-                </p>
-                <div className="panel p-3 text-sm muted">
+              <div className="fade-in">
+                <p className="muted" style={{ fontSize: '9px', marginBottom: '4px', letterSpacing: '0.2em' }}>▸ AGENT</p>
+                <div className="muted" style={{ background: 'rgba(0,10,3,0.6)', border: '1px solid rgba(0,255,65,0.2)', padding: '10px 12px', fontSize: '12px' }}>
                   processing<span className="cursor-blink">_</span>
                 </div>
               </div>
             )}
-
             <div ref={endRef} />
           </div>
 
-          {/* Input bar */}
-          <div
-            className="p-4 flex gap-3 flex-shrink-0"
-            style={{ borderTop: "1px solid rgba(0,255,156,0.15)" }}
-          >
-            <div className="flex-1 flex items-center gap-2">
-              <span
-                className="text-xs flex-shrink-0"
-                style={{ color: "rgba(0,255,156,0.35)" }}
-              >
-                &gt;
-              </span>
-              <input
-                ref={inputRef}
-                className="flex-1 bg-transparent border-none outline-none font-mono text-sm"
-                style={{
-                  color: "#00ff9c",
-                }}
-                placeholder="deploy a meme coin about..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && send()}
-                disabled={typing}
-              />
-            </div>
+          <div style={{ borderTop: '1px solid rgba(0,255,65,0.15)', padding: '12px 14px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <span className="muted" style={{ fontSize: '12px', flexShrink: 0 }}>&gt;</span>
+            <input
+              className="terminal-input"
+              style={{ borderBottom: 'none', flex: 1, padding: '4px 0' }}
+              placeholder="deploy a meme coin about..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && send()}
+              disabled={typing}
+            />
             <button
               onClick={() => send()}
               disabled={typing || !input.trim()}
-              className="btn-primary text-xs"
-              style={{ width: "auto", padding: "8px 20px" }}
+              className="neon-btn"
+              style={{ width: 'auto', padding: '8px 18px', fontSize: '10px' }}
             >
               EXECUTE
             </button>
           </div>
         </div>
-
       </div>
     </main>
   );
