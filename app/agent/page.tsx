@@ -27,9 +27,10 @@ export default function AgentPage() {
 
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, typing]);
 
   const send = async (text?: string) => {
@@ -77,15 +78,36 @@ export default function AgentPage() {
     <main className="page-wrapper">
       <MatrixRain />
 
-      <div className="relative z-10 min-h-screen pt-16 pb-0
-                      flex flex-col max-w-3xl mx-auto px-4">
+      <div className="relative z-10 min-h-screen pt-16 pb-0 flex flex-col max-w-3xl mx-auto px-4">
 
         {/* Page header */}
-        <div className="py-5 text-center flex-shrink-0">
-          <h1 className="text-2xl tracking-widest glow-text-soft">BANKRSYNTH</h1>
-          <p className="text-xs muted tracking-widest mt-1">
-            AUTONOMOUS AGENT — BASE DEPLOYMENT NODE
-          </p>
+        <div className="py-4 flex items-center justify-between flex-shrink-0">
+          <div>
+            <p
+              className="text-xs tracking-[0.25em] mb-0.5"
+              style={{ color: "rgba(0,255,156,0.3)" }}
+            >
+              BANKRSYNTH:// AGENT_NODE
+            </p>
+            <h1
+              className="text-lg tracking-[0.2em] glow-text-soft font-mono uppercase"
+              style={{ color: "#00ff9c" }}
+            >
+              AUTONOMOUS AGENT
+            </h1>
+          </div>
+          <div
+            className="panel flex items-center gap-2 px-3 py-1.5"
+            style={{ fontSize: "11px" }}
+          >
+            <span
+              className="w-1.5 h-1.5 rounded-full animate-pulse"
+              style={{ background: "#00ff9c", boxShadow: "0 0 6px #00ff9c" }}
+            />
+            <span className="tracking-widest" style={{ color: "rgba(0,255,156,0.55)" }}>
+              BASE LIVE
+            </span>
+          </div>
         </div>
 
         {/* Quick commands */}
@@ -95,9 +117,7 @@ export default function AgentPage() {
               key={cmd}
               onClick={() => send(cmd)}
               disabled={typing}
-              className="text-xs px-3 py-1.5 border border-green-400/20
-                         text-green-400/50 hover:text-green-400 hover:border-green-400/50
-                         transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="quick-cmd font-mono"
             >
               &gt; {cmd}
             </button>
@@ -112,8 +132,8 @@ export default function AgentPage() {
             <span className="panel-dot-dim" />
             <span className="ml-2">AGENT TERMINAL</span>
             <button
-              onClick={() => setMessages([{ type: "agent", text: "Session cleared." }])}
-              className="ml-auto text-xs muted hover:text-green-400 transition-colors"
+              onClick={() => setMessages([{ type: "agent", text: "Session cleared. Ready." }])}
+              className="ml-auto text-xs muted hover:text-green-400 transition-colors tracking-widest"
             >
               [CLEAR]
             </button>
@@ -121,17 +141,25 @@ export default function AgentPage() {
 
           {/* Messages */}
           <div
-            ref={(el) => { if (el) endRef.current && el.scrollTo({ top: el.scrollHeight }); }}
-            className="flex-1 overflow-y-auto p-4 space-y-3"
-            style={{ maxHeight: "calc(100vh - 340px)", minHeight: 280 }}
+            ref={scrollRef}
+            className="flex-1 overflow-y-auto p-4 space-y-4"
+            style={{ maxHeight: "calc(100vh - 320px)", minHeight: 280 }}
           >
             {messages.map((msg, i) => {
               if (msg.type === "user") {
                 return (
-                  <div key={i} className="flex justify-end fade-in">
+                  <div key={i} className="flex justify-end slide-right">
                     <div className="max-w-[85%]">
-                      <p className="text-xs muted text-right mb-1">YOU ▸</p>
-                      <div className="panel p-3 border-r-2 border-r-green-400/60 text-sm">
+                      <p
+                        className="text-xs text-right mb-1 tracking-widest"
+                        style={{ color: "rgba(0,255,156,0.4)" }}
+                      >
+                        YOU ▸
+                      </p>
+                      <div
+                        className="panel p-3 text-sm"
+                        style={{ borderRight: "2px solid rgba(0,255,156,0.5)" }}
+                      >
                         {msg.text}
                       </div>
                     </div>
@@ -141,50 +169,86 @@ export default function AgentPage() {
 
               if (msg.type === "deploy") {
                 return (
-                  <div key={i} className="fade-in">
-                    <p className="text-xs muted mb-1">▸ AGENT</p>
+                  <div key={i} className="slide-left">
+                    <p
+                      className="text-xs mb-1 tracking-widest"
+                      style={{ color: "rgba(0,255,156,0.4)" }}
+                    >
+                      ▸ AGENT
+                    </p>
                     <div className="panel-bright p-4 space-y-3">
-                      <p className="text-success tracking-widest text-sm">✔ DEPLOYMENT RESULT</p>
-                      <div className="border-t border-green-400/15 pt-3 space-y-1 text-xs">
+                      <p
+                        className="tracking-[0.2em] text-sm text-success"
+                        style={{ textShadow: "0 0 10px rgba(0,255,156,0.7)" }}
+                      >
+                        ✔ DEPLOYMENT RESULT
+                      </p>
+                      <div
+                        className="pt-3 space-y-1 text-xs"
+                        style={{ borderTop: "1px solid rgba(0,255,156,0.15)" }}
+                      >
                         {msg.name && (
-                          <p><span className="muted">NAME:    </span>{msg.name}</p>
+                          <p>
+                            <span className="muted">NAME:    </span>
+                            {msg.name}
+                          </p>
                         )}
-                        <p><span className="muted">NETWORK: </span>Base Mainnet</p>
+                        <p>
+                          <span className="muted">NETWORK: </span>Base Mainnet
+                        </p>
                         <p className="break-all">
                           <span className="muted">CA:      </span>
-                          <span className="text-green-400">{msg.ca}</span>
+                          <span style={{ color: "#00ff9c" }}>{msg.ca}</span>
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <button onClick={() => copyCA(msg.ca)} className="btn-primary py-1.5 text-xs"
-                                style={{ width: "auto", padding: "6px 14px" }}>
-                          {copied === msg.ca ? "COPIED!" : "COPY CA"}
-                        </button>
-                        <a href={`https://basescan.org/token/${msg.ca}`}
-                           target="_blank" rel="noreferrer"
-                           className="btn-primary py-1.5 text-xs no-underline"
-                           style={{ width: "auto", padding: "6px 14px" }}>
-                          BASESCAN
-                        </a>
-                        <a href={`https://swap.bankr.bot/?outputToken=${msg.ca}`}
-                           target="_blank" rel="noreferrer"
-                           className="btn-primary py-1.5 text-xs no-underline"
-                           style={{ width: "auto", padding: "6px 14px" }}>
-                          TRADE
-                        </a>
+                        {[
+                          { label: copied === msg.ca ? "✔ COPIED" : "COPY CA", action: () => copyCA(msg.ca), href: undefined },
+                          { label: "BASESCAN", href: `https://basescan.org/token/${msg.ca}`, action: undefined },
+                          { label: "TRADE",    href: `https://swap.bankr.bot/?outputToken=${msg.ca}`, action: undefined },
+                        ].map(({ label, action, href }) =>
+                          href ? (
+                            <a
+                              key={label}
+                              href={href}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="btn-primary no-underline text-xs text-center"
+                              style={{ width: "auto", padding: "6px 14px" }}
+                            >
+                              {label}
+                            </a>
+                          ) : (
+                            <button
+                              key={label}
+                              onClick={action!}
+                              className="btn-primary text-xs"
+                              style={{ width: "auto", padding: "6px 14px" }}
+                            >
+                              {label}
+                            </button>
+                          )
+                        )}
                       </div>
                     </div>
                   </div>
                 );
               }
 
-              /* agent */
               return (
-                <div key={i} className="fade-in">
-                  <p className="text-xs muted mb-1">▸ AGENT</p>
-                  <div className={`panel p-3 text-sm leading-relaxed ${
-                    msg.text.startsWith("✖") ? "text-error" : "text-green-400"
-                  }`}>
+                <div key={i} className="slide-left">
+                  <p
+                    className="text-xs mb-1 tracking-widest"
+                    style={{ color: "rgba(0,255,156,0.4)" }}
+                  >
+                    ▸ AGENT
+                  </p>
+                  <div
+                    className={`panel p-3 text-sm leading-relaxed ${
+                      msg.text.startsWith("✖") ? "text-error" : ""
+                    }`}
+                    style={msg.text.startsWith("✖") ? {} : { color: "#00ff9c" }}
+                  >
                     {msg.text}
                   </div>
                 </div>
@@ -192,8 +256,13 @@ export default function AgentPage() {
             })}
 
             {typing && (
-              <div className="fade-in">
-                <p className="text-xs muted mb-1">▸ AGENT</p>
+              <div className="slide-left">
+                <p
+                  className="text-xs mb-1 tracking-widest"
+                  style={{ color: "rgba(0,255,156,0.4)" }}
+                >
+                  ▸ AGENT
+                </p>
                 <div className="panel p-3 text-sm muted">
                   processing<span className="cursor-blink">_</span>
                 </div>
@@ -204,13 +273,23 @@ export default function AgentPage() {
           </div>
 
           {/* Input bar */}
-          <div className="border-t border-green-400/15 p-4 flex gap-3 flex-shrink-0">
+          <div
+            className="p-4 flex gap-3 flex-shrink-0"
+            style={{ borderTop: "1px solid rgba(0,255,156,0.15)" }}
+          >
             <div className="flex-1 flex items-center gap-2">
-              <span className="text-green-400/40 text-xs flex-shrink-0">&gt;</span>
+              <span
+                className="text-xs flex-shrink-0"
+                style={{ color: "rgba(0,255,156,0.35)" }}
+              >
+                &gt;
+              </span>
               <input
                 ref={inputRef}
-                className="flex-1 bg-transparent border-none outline-none
-                           text-green-400 font-mono text-sm placeholder:text-green-400/25"
+                className="flex-1 bg-transparent border-none outline-none font-mono text-sm"
+                style={{
+                  color: "#00ff9c",
+                }}
                 placeholder="deploy a meme coin about..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
