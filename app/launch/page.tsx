@@ -77,7 +77,7 @@ export default function LaunchPage() {
   const canDeploy = values.name.trim() && values.wallet.trim() && !loading;
 
   return (
-    <main className="page-wrapper" style={{ padding: '24px 16px 48px' }}>
+    <main className="page-wrapper" style={{ padding: '64px 16px 48px' }}>
       <div className="max-w-6xl mx-auto" style={{ marginBottom: '20px' }}>
         <p className="muted" style={{ fontSize: '10px', letterSpacing: '0.3em' }}>BANKRSYNTH://</p>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(18px,3vw,26px)', letterSpacing: '0.2em', color: 'var(--green)', textShadow: '0 0 20px rgba(0,255,65,0.4)', marginTop: '4px' }}>

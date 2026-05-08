@@ -68,12 +68,19 @@ export default function Nav() {
           <WalletButton />
 
           <button
-            className="sm:hidden flex flex-col gap-1 p-1"
+            className="sm:hidden flex flex-col gap-[4px] p-1 group"
             onClick={() => setMenuOpen(o => !o)}
             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
           >
             {[0,1,2].map(i => (
-              <span key={i} style={{ display: 'block', width: '18px', height: '1px', background: 'var(--green)' }} />
+              <span key={i} style={{
+                display: 'block',
+                width: i === 1 ? '14px' : '18px',
+                height: '2px',
+                background: 'var(--green)',
+                boxShadow: '0 0 6px var(--green)',
+                transition: 'width 0.2s, box-shadow 0.2s',
+              }} />
             ))}
           </button>
         </div>
