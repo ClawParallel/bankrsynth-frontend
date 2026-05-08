@@ -56,7 +56,7 @@ export default function TerminalPage() {
   };
 
   return (
-    <main className="page-wrapper" style={{ padding: '20px 16px 0' }}>
+    <main className="page-wrapper" style={{ padding: '64px 16px 0' }}>
       <div className="max-w-4xl mx-auto" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 76px)' }}>
         <div style={{ marginBottom: '16px' }}>
           <p className="muted" style={{ fontSize: '10px', letterSpacing: '0.3em' }}>BANKRSYNTH://</p>

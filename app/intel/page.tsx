@@ -89,7 +89,7 @@ export default function IntelPage() {
   useEffect(() => { scan(); }, []); // eslint-disable-line
 
   return (
-    <main className="page-wrapper" style={{ padding: '20px 16px 48px' }}>
+    <main className="page-wrapper" style={{ padding: '64px 16px 48px' }}>
       <div className="max-w-5xl mx-auto" style={{ marginBottom: '20px', display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '12px' }}>
         <div>
           <p className="muted" style={{ fontSize: '10px', letterSpacing: '0.3em' }}>BANKRSYNTH://</p>
